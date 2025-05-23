@@ -40,11 +40,8 @@ async function refreshData() {
         return;
     }
     
-    // Smazat cache
     localStorage.removeItem('tabidoo_data');
     localStorage.removeItem('tabidoo_data_timestamp');
-    
-    // Znovu načíst stránku
     location.reload();
 }
 
@@ -67,7 +64,7 @@ async function getTableData(tableId, tableName) {
     try {
         console.log(`Získávám data tabulky ${tableName} (${tableId})...`);
         
-        const url = `https://app.tabidoo.cloud/api/v2/apps/${CONFIG.TABIDOO_APP_ID}/tables/${tableId}/data?limit=50`;
+        const url = `https://app.tabidoo.cloud/api/v2/apps/${CONFIG.TABIDOO_APP_ID}/tables/${tableId}/data?limit=100`;
         
         const response = await fetch(url, {
             headers: {
@@ -92,12 +89,10 @@ async function getTableData(tableId, tableName) {
 
 // Načtení dat z cache nebo z API
 async function loadTabidooData() {
-    // Kontrola cache
     const cachedData = localStorage.getItem('tabidoo_data');
     const cacheTimestamp = localStorage.getItem('tabidoo_data_timestamp');
     
     if (cachedData && cacheTimestamp) {
-        // Data existují v cache
         const cacheAge = Date.now() - parseInt(cacheTimestamp);
         const cacheAgeHours = cacheAge / (1000 * 60 * 60);
         
@@ -105,7 +100,6 @@ async function loadTabidooData() {
             tablesData = JSON.parse(cachedData);
             console.log('Data načtena z cache, stáří:', cacheAgeHours.toFixed(1), 'hodin');
             
-            // Zobrazit informaci o cache
             const dataSummary = document.getElementById('data-summary');
             const cacheInfo = `<div style="color: #666; font-size: 11px; margin-top: 5px;">
                 Data načtena z cache (stáří: ${cacheAgeHours.toFixed(1)} hodin) 
@@ -121,7 +115,6 @@ async function loadTabidooData() {
         }
     }
     
-    // Data nejsou v cache, načíst z API
     console.log('Načítám data z Tabidoo API...');
     
     for (const table of TABLES) {
@@ -139,7 +132,6 @@ async function loadTabidooData() {
         }
     }
     
-    // Uložit do cache
     if (Object.keys(tablesData).length > 0) {
         localStorage.setItem('tabidoo_data', JSON.stringify(tablesData));
         localStorage.setItem('tabidoo_data_timestamp', Date.now().toString());
@@ -174,65 +166,180 @@ function displayDataSummary(additionalInfo = '') {
     }
 }
 
-// Komunikace s OpenAI - ZMĚNA: Používáme cache data
-async function callOpenAI(userMessages) {
-    let systemPrompt = "Jsi asistent pro data z Tabidoo CRM. Odpovídej česky a stručně. ";
-    systemPrompt += "DŮLEŽITÉ: Veškerá data, která máš k dispozici, jsou kompletní snapshot z databáze. ";
-    systemPrompt += "Nemusíš se ptát na další informace, pracuj s tím, co máš k dispozici.\n\n";
+// Funkce pro extrakci klíčových slov z dotazu
+function extractKeywords(query) {
+    // Odstranit české stopwords a vrátit klíčová slova
+    const stopwords = ['a', 'aby', 'aj', 'ale', 'ano', 'asi', 'az', 'bez', 'bude', 'budem', 'budes', 'by', 'byl', 'byla', 'byli', 'bylo', 'byly', 'co', 'jak', 'jake', 'je', 'jeho', 'jej', 'jeji', 'jest', 'jeste', 'ji', 'jine', 'jiz', 'jsem', 'jses', 'jsi', 'jsme', 'jsou', 'jste', 'k', 'kam', 'kde', 'kdo', 'kdy', 'kdyz', 'ke', 'ktera', 'ktere', 'kteri', 'kterou', 'ktery', 'ma', 'mate', 'me', 'mezi', 'mi', 'mit', 'mne', 'mnou', 'mohl', 'mohou', 'moji', 'muj', 'muze', 'my', 'na', 'nad', 'nam', 'nami', 'nas', 'nase', 'nasi', 'ne', 'nebo', 'nebot', 'necht', 'nejsi', 'nejsou', 'nel', 'nelze', 'nem', 'nema', 'nemaji', 'nemate', 'nemame', 'nemel', 'neni', 'nez', 'nic', 'nich', 'nim', 'nove', 'novy', 'nybrz', 'o', 'od', 'ode', 'on', 'ona', 'oni', 'ono', 'ony', 'pak', 'po', 'pod', 'podle', 'pokud', 'pouze', 'prave', 'pred', 'pres', 'pri', 'pro', 'proc', 'proto', 'protoze', 'prvni', 'pta', 're', 's', 'se', 'si', 'sice', 'skrz', 'sve', 'svuj', 'svych', 'svym', 'svymi', 'ta', 'tak', 'take', 'tato', 'te', 'tebe', 'ted', 'tedy', 'tema', 'ten', 'tento', 'teto', 'tim', 'timto', 'tipy', 'to', 'toho', 'tohoto', 'tom', 'tomto', 'tomu', 'tomuto', 'tu', 'tuto', 'tvoj', 'tve', 'tvuj', 'ty', 'tyto', 'u', 'uz', 'v', 'vam', 'vami', 'vas', 'vase', 'vasi', 've', 'vedle', 'vice', 'vsak', 'vsechno', 'vy', 'vždy', 'z', 'za', 'zda', 'zde', 'ze', 'zpet', 'zpravy'];
     
-    systemPrompt += "Máš přístup k následujícím tabulkám z Tabidoo CRM:\n\n";
+    const words = query.toLowerCase().split(/\s+/);
+    return words.filter(word => word.length > 2 && !stopwords.includes(word));
+}
+
+// Funkce pro filtrování relevantních dat podle dotazu
+function filterRelevantData(query) {
+    const keywords = extractKeywords(query);
+    const filteredData = {};
     
     for (const tableId in tablesData) {
         const table = tablesData[tableId];
-        const data = table.data;
+        const tableData = Array.isArray(table.data) ? table.data : 
+                         (table.data?.items || []);
         
-        systemPrompt += `## Tabulka: ${table.name} (ID: ${tableId})\n\n`;
+        if (!tableData.length) continue;
         
-        if (data) {
-            // Přidat VŠECHNA data do kontextu, ne jen ukázku
-            if (Array.isArray(data)) {
-                systemPrompt += `Počet záznamů: ${data.length}\n\n`;
-                systemPrompt += "Kompletní data:\n";
-                systemPrompt += JSON.stringify(data, null, 2) + "\n\n";
-            } else if (data.items && Array.isArray(data.items)) {
-                systemPrompt += `Počet záznamů: ${data.items.length}\n\n`;
-                systemPrompt += "Kompletní data:\n";
-                systemPrompt += JSON.stringify(data.items, null, 2) + "\n\n";
-            } else {
-                systemPrompt += "Kompletní data:\n";
-                systemPrompt += JSON.stringify(data, null, 2) + "\n\n";
-            }
-        } else {
-            systemPrompt += "Tabulka neobsahuje žádná data.\n\n";
+        // Filtrovat záznamy, které obsahují klíčová slova
+        const relevantRecords = tableData.filter(record => {
+            const recordStr = JSON.stringify(record).toLowerCase();
+            return keywords.some(keyword => recordStr.includes(keyword));
+        });
+        
+        // Pokud jsou relevantní záznamy, přidat je
+        if (relevantRecords.length > 0) {
+            filteredData[tableId] = {
+                name: table.name,
+                data: relevantRecords.slice(0, 20), // Max 20 záznamů na tabulku
+                totalCount: tableData.length,
+                filteredCount: relevantRecords.length
+            };
+        } else if (keywords.some(keyword => table.name.toLowerCase().includes(keyword))) {
+            // Pokud název tabulky obsahuje klíčové slovo, přidat ukázku dat
+            filteredData[tableId] = {
+                name: table.name,
+                data: tableData.slice(0, 10), // Max 10 záznamů
+                totalCount: tableData.length,
+                filteredCount: 10
+            };
         }
     }
     
-    const apiMessages = [
-        { role: "system", content: systemPrompt },
-        ...userMessages
-    ];
-    
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-            model: "gpt-4o",
-            messages: apiMessages,
-            temperature: 0.7,
-            max_tokens: 2000 // Zvýšit limit pro delší odpovědi
-        })
-    });
-    
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'OpenAI API Error');
+    // Pokud není nic relevantního, vrátit strukturu tabulek s minimem dat
+    if (Object.keys(filteredData).length === 0) {
+        for (const tableId in tablesData) {
+            const table = tablesData[tableId];
+            const tableData = Array.isArray(table.data) ? table.data : 
+                             (table.data?.items || []);
+            
+            filteredData[tableId] = {
+                name: table.name,
+                data: tableData.slice(0, 5), // Jen 5 ukázkových záznamů
+                totalCount: tableData.length,
+                filteredCount: 5
+            };
+        }
     }
     
-    const data = await response.json();
-    return data.choices[0].message.content;
+    return filteredData;
+}
+
+// UPRAVENÁ komunikace s OpenAI - používá filtrovaná data
+async function callOpenAI(userMessages) {
+    // Získat poslední uživatelský dotaz pro filtrování
+    const lastUserMessage = [...userMessages].reverse().find(m => m.role === 'user');
+    const currentQuery = lastUserMessage?.content || '';
+    
+    // Filtrovat relevantní data podle dotazu
+    const relevantData = filterRelevantData(currentQuery);
+    
+    let systemPrompt = "Jsi asistent pro data z Tabidoo CRM. Odpovídej česky a stručně. ";
+    systemPrompt += "Pracuješ s daty z databáze. Pokud potřebuješ více informací o konkrétním záznamu, ";
+    systemPrompt += "požádej uživatele o upřesnění (např. ID nebo název).\n\n";
+    
+    systemPrompt += "Máš přístup k následujícím tabulkám:\n\n";
+    
+    // Přidat pouze relevantní data
+    for (const tableId in relevantData) {
+        const table = relevantData[tableId];
+        systemPrompt += `## Tabulka: ${table.name} (ID: ${tableId})\n`;
+        systemPrompt += `Celkový počet záznamů v tabulce: ${table.totalCount}\n`;
+        systemPrompt += `Zobrazeno záznamů: ${table.filteredCount}\n\n`;
+        
+        if (table.data && table.data.length > 0) {
+            // Zobrazit strukturu prvního záznamu
+            const firstRecord = table.data[0];
+            const fields = Object.keys(firstRecord);
+            systemPrompt += `Pole v tabulce: ${fields.join(', ')}\n\n`;
+            
+            // Přidat data
+            systemPrompt += "Data:\n";
+            systemPrompt += JSON.stringify(table.data, null, 2) + "\n\n";
+        }
+    }
+    
+    // Omezit délku system promptu
+    if (systemPrompt.length > 15000) {
+        systemPrompt = systemPrompt.substring(0, 15000) + "\n\n[Data zkrácena kvůli limitu]";
+    }
+    
+    // Omezit historii konverzace - pouze posledních 5 výměn
+    const recentMessages = userMessages.slice(-10);
+    
+    const apiMessages = [
+        { role: "system", content: systemPrompt },
+        ...recentMessages
+    ];
+    
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo-16k", // Změna na model s větším kontextem
+                messages: apiMessages,
+                temperature: 0.7,
+                max_tokens: 1000
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'OpenAI API Error');
+        }
+        
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (error) {
+        // Pokud stále překračujeme limit, zkusit ještě menší data
+        if (error.message.includes('Request too large')) {
+            console.log('Zkouším menší kontext...');
+            
+            // Ještě více zredukovat data
+            const minimalPrompt = "Jsi asistent pro Tabidoo CRM. V databázi jsou tabulky: " +
+                Object.values(relevantData).map(t => `${t.name} (${t.totalCount} záznamů)`).join(', ') +
+                ". Odpověz stručně na dotaz.";
+            
+            const minimalMessages = [
+                { role: "system", content: minimalPrompt },
+                lastUserMessage
+            ];
+            
+            const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: minimalMessages,
+                    temperature: 0.7,
+                    max_tokens: 500
+                })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || 'OpenAI API Error');
+            }
+            
+            const data = await response.json();
+            return data.choices[0].message.content + "\n\n*[Odpověď byla zkrácena kvůli velikosti dat. Pro detailnější informace se ptejte na konkrétní záznamy.]*";
+        }
+        
+        throw error;
+    }
 }
 
 // Odeslání zprávy
@@ -273,7 +380,6 @@ async function init() {
     const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML = '<div class="message system-message">Načítám data...</div>';
     
-    // Načíst data (z cache nebo API)
     const dataLoaded = await loadTabidooData();
     
     if (dataLoaded) {
@@ -284,7 +390,6 @@ async function init() {
         addMessage('error', 'Nepodařilo se načíst žádná data z Tabidoo. Zkontrolujte nastavení API.');
     }
     
-    // Nastavení enter pro odeslání
     document.getElementById('chat-input').addEventListener('keydown', function(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
