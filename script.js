@@ -59,12 +59,12 @@ function addMessage(role, content) {
     }
 }
 
-// Získání dat z Tabidoo - OMEZIT NA 30 ZÁZNAMŮ
+// Získání dat z Tabidoo
 async function getTableData(tableId, tableName) {
     try {
         console.log(`Získávám data tabulky ${tableName} (${tableId})...`);
         
-        const url = `https://app.tabidoo.cloud/api/v2/apps/${CONFIG.TABIDOO_APP_ID}/tables/${tableId}/data?limit=30`;
+        const url = `https://app.tabidoo.cloud/api/v2/apps/${CONFIG.TABIDOO_APP_ID}/tables/${tableId}/data?limit=20`; // Sníženo na 20
         
         const response = await fetch(url, {
             headers: {
@@ -78,7 +78,7 @@ async function getTableData(tableId, tableName) {
         }
         
         const data = await response.json();
-        console.log(`Data tabulky ${tableName} získána:`, data);
+        console.log(`Data tabulky ${tableName} získána`);
         
         return data;
     } catch (error) {
@@ -100,7 +100,6 @@ async function loadTabidooData() {
             tablesData = JSON.parse(cachedData);
             console.log('Data načtena z cache, stáří:', cacheAgeHours.toFixed(1), 'hodin');
             
-            const dataSummary = document.getElementById('data-summary');
             const cacheInfo = `<div style="color: #666; font-size: 11px; margin-top: 5px;">
                 Data načtena z cache (stáří: ${cacheAgeHours.toFixed(1)} hodin) 
                 <button onclick="refreshData()" style="margin-left: 10px; font-size: 11px;">🔄 Obnovit data</button>
@@ -137,7 +136,7 @@ async function loadTabidooData() {
         localStorage.setItem('tabidoo_data_timestamp', Date.now().toString());
         console.log('Data uložena do cache');
         
-        displayDataSummary('<div style="color: green; font-size: 11px; margin-top: 5px;">✓ Nová data načtena a uložena do cache</div>');
+        displayDataSummary('<div style="color: green; font-size: 11px; margin-top: 5px;">✓ Data načtena a uložena</div>');
         return true;
     }
     
@@ -156,7 +155,7 @@ function displayDataSummary(additionalInfo = '') {
             hasData = true;
             const dataCount = Array.isArray(table.data) ? table.data.length : 
                             (table.data?.items?.length || 0);
-            summaryHtml += `- ${table.name}: ${dataCount} záznamů (zobrazeno max 30)<br>`;
+            summaryHtml += `- ${table.name}: ${dataCount} záznamů<br>`;
         }
     }
     
@@ -166,73 +165,19 @@ function displayDataSummary(additionalInfo = '') {
     }
 }
 
-// Funkce pro získání souhrnu dat (místo plných dat)
-function getDataSummary() {
-    const summary = {};
-    
+// KRITICKÁ ZMĚNA - Nová minimální komunikace s OpenAI
+async function callOpenAI(userMessages) {
+    // Vytvořit velmi krátký souhrn dat
+    let dataInfo = "Databáze obsahuje: ";
     for (const tableId in tablesData) {
         const table = tablesData[tableId];
-        const tableData = Array.isArray(table.data) ? table.data : 
-                         (table.data?.items || []);
-        
-        if (tableData.length > 0) {
-            // Získat seznam polí
-            const sampleRecord = tableData[0];
-            const fields = Object.keys(sampleRecord);
-            
-            // Vytvořit souhrn
-            summary[tableId] = {
-                name: table.name,
-                recordCount: tableData.length,
-                fields: fields,
-                sampleRecords: tableData.slice(0, 3).map(record => {
-                    // Zkrátit dlouhé hodnoty
-                    const shortRecord = {};
-                    for (const [key, value] of Object.entries(record)) {
-                        if (typeof value === 'string' && value.length > 50) {
-                            shortRecord[key] = value.substring(0, 50) + '...';
-                        } else {
-                            shortRecord[key] = value;
-                        }
-                    }
-                    return shortRecord;
-                })
-            };
-        }
+        const count = Array.isArray(table.data) ? table.data.length : 
+                     (table.data?.items?.length || 0);
+        dataInfo += `${table.name} (${count} záznamů), `;
     }
     
-    return summary;
-}
-
-// NOVÁ komunikace s OpenAI - maximálně optimalizovaná
-async function callOpenAI(userMessages) {
-    const lastUserMessage = [...userMessages].reverse().find(m => m.role === 'user');
-    const currentQuery = lastUserMessage?.content || '';
-    
-    // Získat pouze souhrn dat
-    const dataSummary = getDataSummary();
-    
-    let systemPrompt = `Jsi asistent pro Tabidoo CRM. Máš přístup k následujícím tabulkám:
-
-`;
-    
-    // Velmi stručný popis dat
-    for (const [tableId, summary] of Object.entries(dataSummary)) {
-        systemPrompt += `${summary.name}: ${summary.recordCount} záznamů\n`;
-        systemPrompt += `Pole: ${summary.fields.slice(0, 10).join(', ')}\n`;
-        systemPrompt += `Ukázka: ${JSON.stringify(summary.sampleRecords[0])}\n\n`;
-    }
-    
-    systemPrompt += `
-Odpovídej stručně česky. Pokud potřebuješ konkrétní data, požádej o upřesnění.`;
-    
-    // Pouze poslední 3 zprávy z historie
-    const recentMessages = messages.slice(-6);
-    
-    const apiMessages = [
-        { role: "system", content: systemPrompt },
-        ...recentMessages
-    ];
+    // Pouze poslední dotaz
+    const lastMessage = userMessages[userMessages.length - 1];
     
     try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -242,15 +187,31 @@ Odpovídej stručně česky. Pokud potřebuješ konkrétní data, požádej o up
                 "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-3.5-turbo", // ZMĚNA MODELU!
-                messages: apiMessages,
+                model: "gpt-3.5-turbo", // DŮLEŽITÉ - ne gpt-4o!
+                messages: [
+                    {
+                        role: "system",
+                        content: `Jsi asistent pro Tabidoo CRM. ${dataInfo}. Odpovídej velmi stručně česky.`
+                    },
+                    {
+                        role: "user",
+                        content: lastMessage.content
+                    }
+                ],
                 temperature: 0.7,
-                max_tokens: 500
+                max_tokens: 150 // Omezení odpovědi
             })
         });
         
         if (!response.ok) {
             const error = await response.json();
+            console.error('API Error:', error);
+            
+            // Pokud stále překračuje limit, vrátit jednoduchou odpověď
+            if (error.error?.message?.includes('tokens') || error.error?.message?.includes('Request too large')) {
+                return "Omlouvám se, dotaz je příliš složitý. Zkuste se zeptat jednodušeji nebo na konkrétní informaci.";
+            }
+            
             throw new Error(error.error?.message || 'OpenAI API Error');
         }
         
@@ -258,50 +219,14 @@ Odpovídej stručně česky. Pokud potřebuješ konkrétní data, požádej o up
         return data.choices[0].message.content;
         
     } catch (error) {
-        console.error('API Error:', error);
-        
-        // Pokud stále problém, zkusit minimální verzi
-        if (error.message.includes('Request too large') || error.message.includes('tokens')) {
-            const minimalMessages = [
-                {
-                    role: "system",
-                    content: "Jsi asistent pro Tabidoo CRM. V databázi jsou tabulky: Aktivity, Kontakty, Obchodní případy, Firma. Odpověz stručně česky."
-                },
-                {
-                    role: "user",
-                    content: currentQuery
-                }
-            ];
-            
-            const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-3.5-turbo",
-                    messages: minimalMessages,
-                    temperature: 0.7,
-                    max_tokens: 200
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('API stále přetížené. Zkuste to později.');
-            }
-            
-            const data = await response.json();
-            return data.choices[0].message.content + "\n\n*[Pro detailní data se ptejte na konkrétní záznamy]*";
-        }
-        
+        console.error('Chyba při volání API:', error);
         throw error;
     }
 }
 
-// Funkce pro vyhledání konkrétních dat
-async function searchSpecificData(query) {
-    // Tuto funkci můžete rozšířit pro vyhledávání konkrétních záznamů
+// Lokální vyhledávání v datech
+function searchInData(query) {
+    const searchTerm = query.toLowerCase();
     const results = [];
     
     for (const tableId in tablesData) {
@@ -309,20 +234,18 @@ async function searchSpecificData(query) {
         const tableData = Array.isArray(table.data) ? table.data : 
                          (table.data?.items || []);
         
-        const matches = tableData.filter(record => {
+        tableData.forEach(record => {
             const recordStr = JSON.stringify(record).toLowerCase();
-            return recordStr.includes(query.toLowerCase());
-        }).slice(0, 5); // Max 5 výsledků
-        
-        if (matches.length > 0) {
-            results.push({
-                table: table.name,
-                matches: matches
-            });
-        }
+            if (recordStr.includes(searchTerm)) {
+                results.push({
+                    table: table.name,
+                    record: record
+                });
+            }
+        });
     }
     
-    return results;
+    return results.slice(0, 5); // Max 5 výsledků
 }
 
 // Odeslání zprávy
@@ -343,34 +266,47 @@ async function sendMessage() {
     sendButton.textContent = 'Odesílám...';
     
     try {
-        // Pokud uživatel hledá konkrétní data
-        if (messageText.toLowerCase().includes('najdi') || 
-            messageText.toLowerCase().includes('vyhledej') || 
-            messageText.toLowerCase().includes('ukáž')) {
+        // Nejdřív zkusit lokální vyhledávání
+        if (messageText.includes('?') || messageText.toLowerCase().includes('najdi') || 
+            messageText.toLowerCase().includes('ukáž') || messageText.toLowerCase().includes('seznam')) {
             
-            const searchTerm = messageText.split(' ').slice(-1)[0];
-            const searchResults = await searchSpecificData(searchTerm);
+            // Extrahovat klíčové slovo
+            const words = messageText.split(' ');
+            const keyword = words[words.length - 1].replace('?', '');
+            
+            const searchResults = searchInData(keyword);
             
             if (searchResults.length > 0) {
-                let resultText = `Našel jsem následující výsledky pro "${searchTerm}":\n\n`;
-                searchResults.forEach(result => {
-                    resultText += `**${result.table}:**\n`;
-                    result.matches.forEach(match => {
-                        resultText += `- ${JSON.stringify(match)}\n`;
-                    });
+                let response = `Našel jsem ${searchResults.length} výsledků:\n\n`;
+                searchResults.forEach((result, index) => {
+                    response += `${index + 1}. ${result.table}: `;
+                    // Zobrazit jen klíčové informace
+                    const record = result.record;
+                    const preview = Object.entries(record)
+                        .slice(0, 3)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join(', ');
+                    response += preview + '\n';
                 });
-                addMessage('assistant', resultText);
+                
+                addMessage('assistant', response);
                 return;
             }
         }
         
-        // Normální dotaz přes ChatGPT
+        // Pokud lokální vyhledávání nenašlo nic, použít ChatGPT
         const response = await callOpenAI(messages);
         addMessage('assistant', response);
         
     } catch (error) {
         console.error('Chyba:', error);
-        addMessage('error', 'Chyba: ' + error.message);
+        
+        // Pokud je chyba s tokeny, nabídnout alternativu
+        if (error.message.includes('token') || error.message.includes('Request too large')) {
+            addMessage('assistant', 'Data jsou příliš velká pro zpracování. Zkuste se zeptat na konkrétní informaci, například:\n- "Najdi kontakt Jana"\n- "Seznam firem"\n- "Ukáž aktivity"');
+        } else {
+            addMessage('error', 'Chyba: ' + error.message);
+        }
     } finally {
         chatInput.disabled = false;
         sendButton.disabled = false;
@@ -390,7 +326,12 @@ async function init() {
     
     if (dataLoaded) {
         chatMessages.innerHTML = '';
-        addMessage('system', 'Jsem připraven odpovídat na vaše dotazy. Pro vyhledání konkrétních dat použijte "najdi", "vyhledej" nebo "ukáž".');
+        addMessage('system', 'Vítejte! Mohu vám pomoci s daty z Tabidoo. Zkuste se zeptat na konkrétní informace.');
+        
+        // Přidat nápovědu
+        setTimeout(() => {
+            addMessage('assistant', 'Tip: Ptejte se například:\n- "Najdi kontakt Pavel"\n- "Seznam firem"\n- "Kolik máme aktivit?"\n- "Ukáž obchodní případy"');
+        }, 1000);
     } else {
         chatMessages.innerHTML = '';
         addMessage('error', 'Nepodařilo se načíst data z Tabidoo. Zkontrolujte nastavení API.');
