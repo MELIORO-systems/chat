@@ -183,3 +183,26 @@ body {
         border-radius: 0;
     }
 }
+/* Přidat do style.css */
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.refresh-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.3s;
+}
+
+.refresh-button:hover {
+    transform: rotate(180deg);
+}
+
+.refresh-button:active {
+    transform: rotate(360deg);
+}
