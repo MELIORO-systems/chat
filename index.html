@@ -10,7 +10,10 @@
     <div class="chat-container">
         <div class="chat-header">
             <h1>Tabidoo ChatGPT Asistent</h1>
-            <button class="settings-button" onclick="toggleSettings()">⚙️</button>
+            <div class="header-buttons">
+                <button class="refresh-button" onclick="refreshData()" title="Obnovit data z Tabidoo">🔄</button>
+                <button class="settings-button" onclick="toggleSettings()" title="Nastavení">⚙️</button>
+            </div>
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
