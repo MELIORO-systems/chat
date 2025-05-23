@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabidoo ChatGPT Asistent</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Tabidoo ChatGPT Asistent</h1>
+            <button class="settings-button" onclick="toggleSettings()">⚙️</button>
+        </div>
+        
+        <div id="settings-panel" class="settings-panel" style="display: none;">
+            <h3>Nastavení API</h3>
+            <input type="password" id="openai-key" placeholder="OpenAI API klíč">
+            <input type="password" id="tabidoo-token" placeholder="Tabidoo API token">
+            <input type="text" id="tabidoo-app-id" placeholder="Tabidoo App ID">
+            <button onclick="saveSettings()">Uložit nastavení</button>
+        </div>
+        
+        <div id="data-summary" class="data-summary"></div>
+        
+        <div id="chat-messages" class="chat-messages">
+            <div class="message system-message">
+                Načítám data z Tabidoo...
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <textarea id="chat-input" class="chat-input" placeholder="Napište vaši zprávu..." rows="2"></textarea>
+            <button id="send-button" class="send-button" onclick="sendMessage()">Odeslat</button>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
