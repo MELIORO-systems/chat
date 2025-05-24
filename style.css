@@ -206,3 +206,112 @@ body {
 .refresh-button:active {
     transform: rotate(360deg);
 }
+/* Přidat do style.css */
+
+.settings-panel {
+    background: #f9f9f9;
+    padding: 25px;
+    border-bottom: 1px solid #ddd;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-section label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.settings-section small {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.settings-section a {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.input-group input {
+    flex: 1;
+}
+
+.toggle-btn {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.primary-btn {
+    background: #1976d2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.secondary-btn {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.settings-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.link-btn {
+    background: none;
+    border: none;
+    color: #1976d2;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+.link-btn.danger {
+    color: #d32f2f;
+}
+
+.security-info {
+    background: #e8f5e9;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #2e7d32;
+    text-align: center;
+}
