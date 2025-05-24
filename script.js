@@ -45,22 +45,29 @@ function saveSettings() {
     const tabidooToken = document.getElementById('tabidoo-token').value.trim();
     const tabidooAppId = document.getElementById('tabidoo-app-id').value.trim();
     
-    // Validace
-    const errors = validateApiKeys(openaiKey, tabidooToken);
-    if (errors.length > 0) {
-        alert('Chyby v nastavení:\n' + errors.join('\n'));
-        return;
+    // Pokud jsou pole prázdná, neměnit existující hodnoty
+    if (openaiKey || !CONFIG.OPENAI_API_KEY) {
+        if (openaiKey) {
+            const errors = validateApiKeys(openaiKey, tabidooToken || CONFIG.TABIDOO_API_TOKEN);
+            if (errors.length > 0 && !confirm('Nalezeny problémy:\n' + errors.join('\n') + '\n\nPřesto pokračovat?')) {
+                return;
+            }
+            security.saveSecure('openai_key', openaiKey);
+            CONFIG.OPENAI_API_KEY = openaiKey;
+        }
     }
     
-    // Bezpečné uložení
-    security.saveSecure('openai_key', openaiKey);
-    security.saveSecure('tabidoo_token', tabidooToken);
-    security.saveSecure('tabidoo_app_id', tabidooAppId);
+    if (tabidooToken || !CONFIG.TABIDOO_API_TOKEN) {
+        if (tabidooToken) {
+            security.saveSecure('tabidoo_token', tabidooToken);
+            CONFIG.TABIDOO_API_TOKEN = tabidooToken;
+        }
+    }
     
-    // Aktualizovat CONFIG
-    CONFIG.OPENAI_API_KEY = openaiKey;
-    CONFIG.TABIDOO_API_TOKEN = tabidooToken;
-    CONFIG.TABIDOO_APP_ID = tabidooAppId;
+    if (tabidooAppId) {
+        security.saveSecure('tabidoo_app_id', tabidooAppId);
+        CONFIG.TABIDOO_APP_ID = tabidooAppId;
+    }
     
     alert('Nastavení bezpečně uloženo!');
     toggleSettings();
@@ -79,74 +86,4 @@ function toggleSettings() {
     
     if (isHidden) {
         // Zobrazit pouze maskované hodnoty
-        const openaiField = document.getElementById('openai-key');
-        const tabidooField = document.getElementById('tabidoo-token');
-        const appIdField = document.getElementById('tabidoo-app-id');
-        
-        // Vymazat pole při otevření
-        openaiField.value = '';
-        tabidooField.value = '';
-        appIdField.value = CONFIG.TABIDOO_APP_ID || '';
-        
-        // Placeholder s nápovědou
-        openaiField.placeholder = CONFIG.OPENAI_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'Zadejte OpenAI API klíč';
-        tabidooField.placeholder = CONFIG.TABIDOO_API_TOKEN ? 'Token je nastaven (pro změnu zadejte nový)' : 'Zadejte Tabidoo API token';
-    }
-}
-
-// Export/Import konfigurace
-function exportConfig() {
-    const config = {
-        openai: security.loadSecure('openai_key'),
-        tabidoo: security.loadSecure('tabidoo_token'),
-        appId: security.loadSecure('tabidoo_app_id'),
-        timestamp: new Date().toISOString()
-    };
-    
-    // Zašifrovat celou konfiguraci
-    const exportKey = prompt('Zadejte heslo pro export (zapamatujte si ho):');
-    if (!exportKey) return;
-    
-    const encrypted = security.encrypt(JSON.stringify(config), exportKey);
-    
-    // Stáhnout jako soubor
-    const blob = new Blob([encrypted], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tabidoo-config-${Date.now()}.enc`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-function importConfig() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.enc';
-    
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const encrypted = await file.text();
-        const exportKey = prompt('Zadejte heslo pro import:');
-        if (!exportKey) return;
-        
-        try {
-            const decrypted = security.decrypt(encrypted, exportKey);
-            const config = JSON.parse(decrypted);
-            
-            // Uložit importovanou konfiguraci
-            security.saveSecure('openai_key', config.openai);
-            security.saveSecure('tabidoo_token', config.tabidoo);
-            security.saveSecure('tabidoo_app_id', config.appId);
-            
-            alert('Konfigurace úspěšně importována!');
-            location.reload();
-        } catch (error) {
-            alert('Chyba při importu: Nesprávné heslo nebo poškozený soubor');
-        }
-    };
-    
-    input.click();
-}
+        const openaiField = document.getElementById('openai-ke
