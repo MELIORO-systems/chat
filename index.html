@@ -17,14 +17,56 @@
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
-            <h3>Nastavení API</h3>
-            <input type="password" id="openai-key" placeholder="OpenAI API klíč">
-            <input type="password" id="tabidoo-token" placeholder="Tabidoo API token">
-            <input type="text" id="tabidoo-app-id" placeholder="Tabidoo App ID">
-            <button onclick="saveSettings()">Uložit nastavení</button>
+            <h3>🔐 Zabezpečené nastavení API</h3>
+            
+            <div class="settings-section">
+                <label for="openai-key">OpenAI API klíč:</label>
+                <div class="input-group">
+                    <input type="password" id="openai-key" placeholder="sk-...">
+                    <button onclick="toggleVisibility('openai-key')" class="toggle-btn">👁️</button>
+                </div>
+                <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
+            </div>
+            
+            <div class="settings-section">
+                <label for="tabidoo-token">Tabidoo API token:</label>
+                <div class="input-group">
+                    <input type="password" id="tabidoo-token" placeholder="eyJ...">
+                    <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">👁️</button>
+                </div>
+                <small>Najdete v Tabidoo → Nastavení → API</small>
+            </div>
+            
+            <div class="settings-section">
+                <label for="tabidoo-app-id">Tabidoo App ID:</label>
+                <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
+                <small>Název vaší aplikace v Tabidoo</small>
+            </div>
+            
+            <div class="settings-actions">
+                <button onclick="saveSettings()" class="primary-btn">💾 Uložit nastavení</button>
+                <button onclick="toggleSettings()" class="secondary-btn">Zrušit</button>
+            </div>
+            
+            <div class="settings-footer">
+                <button onclick="exportConfig()" class="link-btn">📤 Export konfigurace</button>
+                <button onclick="importConfig()" class="link-btn">📥 Import konfigurace</button>
+                <button onclick="clearAllData()" class="link-btn danger">🗑️ Vymazat vše</button>
+            </div>
+            
+            <div class="security-info">
+                🔒 Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.
+            </div>
         </div>
         
         <div id="data-summary" class="data-summary"></div>
+        
+        <div id="embeddings-status" class="embeddings-status" style="display: none;">
+            <span id="embeddings-text">Vytvářím vyhledávací index...</span>
+            <div class="progress-bar">
+                <div id="embeddings-progress" class="progress-fill"></div>
+            </div>
+        </div>
         
         <div id="chat-messages" class="chat-messages">
             <div class="message system-message">
@@ -38,7 +80,25 @@
         </div>
     </div>
 
+    <script src="security.js"></script>
     <script src="config.js"></script>
+    <script src="embeddings.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        // Pomocné funkce
+        function toggleVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
+        
+        function clearAllData() {
+            if (confirm('Opravdu chcete vymazat všechna data včetně API klíčů?\n\nTato akce je nevratná!')) {
+                localStorage.clear();
+                alert('Všechna data byla vymazána.');
+                location.reload();
+            }
+        }
+    </script>
 </body>
 </html>
