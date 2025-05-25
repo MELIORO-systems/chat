@@ -13,6 +13,7 @@
             <div class="header-buttons">
                 <button class="refresh-button" onclick="refreshData()" title="Obnovit data z Tabidoo">🔄</button>
                 <button class="settings-button" onclick="toggleSettings()" title="Nastavení">⚙️</button>
+                <button class="diagnostic-button" onclick="runDiagnosticsManual()" title="Diagnostika">🔧</button>
             </div>
         </div>
         
@@ -59,8 +60,6 @@
             </div>
         </div>
         
-        <div id="data-summary" class="data-summary"></div>
-        
         <div id="embeddings-status" class="embeddings-status" style="display: none;">
             <span id="embeddings-text">Vytvářím vyhledávací index...</span>
             <div class="progress-bar">
@@ -70,7 +69,7 @@
         
         <div id="chat-messages" class="chat-messages">
             <div class="message system-message">
-                Načítám data z Tabidoo...
+                Načítám systém...
             </div>
         </div>
         
@@ -98,6 +97,12 @@
                 alert('Všechna data byla vymazána.');
                 location.reload();
             }
+        }
+        
+        // Manuální spuštění diagnostiky
+        function runDiagnosticsManual() {
+            localStorage.removeItem('diagnostics_completed');
+            location.reload();
         }
     </script>
 </body>
