@@ -44,7 +44,7 @@ body {
     gap: 10px;
 }
 
-.refresh-button, .settings-button {
+.refresh-button, .settings-button, .diagnostic-button {
     background: none;
     border: none;
     font-size: 20px;
@@ -60,6 +60,10 @@ body {
 
 .settings-button:hover {
     transform: rotate(45deg);
+}
+
+.diagnostic-button:hover {
+    transform: scale(1.2);
 }
 
 .settings-panel {
@@ -203,23 +207,6 @@ body {
     text-align: center;
 }
 
-.data-summary {
-    background: #f5f5f5;
-    border-bottom: 1px solid #ddd;
-    padding: 15px 20px;
-    font-size: 13px;
-    display: none;
-}
-
-.data-summary button {
-    background: none;
-    border: 1px solid #999;
-    padding: 2px 8px;
-    cursor: pointer;
-    font-size: 11px;
-    border-radius: 3px;
-}
-
 .embeddings-status {
     background: #e3f2fd;
     padding: 15px 20px;
@@ -297,6 +284,17 @@ body {
     font-weight: bold;
 }
 
+.diagnostic-message {
+    background-color: #f0f0f0;
+    border-left: 4px solid #2196F3;
+    margin: 10px 0;
+    padding: 10px 15px;
+    font-family: monospace;
+    font-size: 14px;
+    width: 100%;
+    max-width: none;
+}
+
 .chat-input-area {
     display: flex;
     padding: 20px;
@@ -353,12 +351,4 @@ body {
     .settings-panel {
         max-height: 80vh;
     }
-}
-.diagnostic-message {
-    background-color: #f0f0f0;
-    border-left: 4px solid #2196F3;
-    margin: 10px 0;
-    padding: 10px 15px;
-    font-family: monospace;
-    font-size: 14px;
 }
