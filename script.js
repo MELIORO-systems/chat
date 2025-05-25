@@ -247,7 +247,7 @@ async function getTableData(tableId, tableName, isDiagnostic = false) {
             addDiagnosticMessage(`Načítám tabulku ${tableName}...`);
         }
         
-        const url = `https://app.tabidoo.cloud/api/v2/apps/${CONFIG.TABIDOO_APP_ID}/tables/${tableId}/data?limit=50`;
+        const url = `https://app.tabidoo.cloud/api/v2/apps/${CONFIG.TABIDOO_APP_ID}/tables/${tableId}/data?limit=100`;
         
         const response = await fetch(url, {
             headers: {
@@ -422,26 +422,40 @@ function getActualTableData(table) {
     return [];
 }
 
-// Analyzovat typ dotazu
+// Analyzovat typ dotazu - VYLEPŠENÁ VERZE
 function analyzeQueryType(query) {
     const lowerQuery = query.toLowerCase();
     
+    // Systémové dotazy
     if (lowerQuery.includes('verz') || lowerQuery.includes('gpt') || lowerQuery.includes('model') ||
         lowerQuery.includes('kdo jsi') || lowerQuery.includes('co umíš')) {
         return 'system';
     }
     
+    // Dotazy na seznam/výpis
+    if (lowerQuery.includes('vypiš') || lowerQuery.includes('seznam') || lowerQuery.includes('názvy') ||
+        lowerQuery.includes('jména') || lowerQuery.includes('všechny') || lowerQuery.includes('ukáž')) {
+        return 'list';
+    }
+    
+    // Analytické dotazy
     if (lowerQuery.includes('kolik') || lowerQuery.includes('počet') || lowerQuery.includes('součet') ||
         lowerQuery.includes('průměr') || lowerQuery.includes('celkem') || lowerQuery.includes('statistik')) {
         return 'analytics';
     }
     
-    if (lowerQuery.includes('najdi') || lowerQuery.includes('vyhledej') || lowerQuery.includes('ukáž') ||
-        lowerQuery.includes('seznam') || lowerQuery.includes('zobraz')) {
+    // Vyhledávací dotazy
+    if (lowerQuery.includes('najdi') || lowerQuery.includes('vyhledej') || lowerQuery.includes('hledej')) {
         return 'search';
     }
     
-    return 'analytics';
+    // Pokud obsahuje název tabulky, je to pravděpodobně dotaz na data
+    if (lowerQuery.includes('firm') || lowerQuery.includes('kontakt') || 
+        lowerQuery.includes('aktiv') || lowerQuery.includes('obchod') || lowerQuery.includes('případ')) {
+        return 'list';
+    }
+    
+    return 'general';
 }
 
 // Získat statistiky dat
@@ -461,6 +475,59 @@ function getDataStatistics() {
     }
     
     return stats;
+}
+
+// Získat všechna data z konkrétní tabulky
+function getAllRecordsFromTable(tableName) {
+    for (const tableId in tablesData) {
+        const table = tablesData[tableId];
+        if (table.name.toLowerCase().includes(tableName.toLowerCase())) {
+            return getActualTableData(table);
+        }
+    }
+    return [];
+}
+
+// Formátovat záznamy pro zobrazení
+function formatRecordsForDisplay(records, tableName, maxRecords = 20) {
+    if (!records || records.length === 0) {
+        return `Nenašel jsem žádné záznamy v tabulce ${tableName}.`;
+    }
+    
+    let output = `**${tableName}** (celkem ${records.length} záznamů):\n\n`;
+    
+    const displayRecords = records.slice(0, maxRecords);
+    
+    displayRecords.forEach((record, index) => {
+        output += `${index + 1}. `;
+        
+        // Prioritní pole pro zobrazení
+        const importantFields = ['name', 'nazev', 'Name', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma', 'company'];
+        const displayedFields = [];
+        
+        for (const field of importantFields) {
+            if (record[field]) {
+                displayedFields.push(`${field}: ${record[field]}`);
+            }
+        }
+        
+        // Pokud nejsou důležitá pole, zobrazit první 3 neprázdná pole
+        if (displayedFields.length === 0) {
+            for (const [key, value] of Object.entries(record)) {
+                if (value && !key.startsWith('_') && displayedFields.length < 3) {
+                    displayedFields.push(`${key}: ${value}`);
+                }
+            }
+        }
+        
+        output += displayedFields.join(', ') + '\n';
+    });
+    
+    if (records.length > maxRecords) {
+        output += `\n... a dalších ${records.length - maxRecords} záznamů.`;
+    }
+    
+    return output;
 }
 
 // Analyzovat data pro odpověď
@@ -542,7 +609,7 @@ function fallbackTextSearch(query, topK = 5) {
         .slice(0, topK);
 }
 
-// Smart volání OpenAI
+// Smart volání OpenAI - KOMPLETNĚ PŘEPRACOVANÉ
 async function smartCallOpenAI(query) {
     console.log('Smart call OpenAI for query:', query);
     
@@ -550,13 +617,14 @@ async function smartCallOpenAI(query) {
         const queryType = analyzeQueryType(query);
         console.log('Query type:', queryType);
         
+        // Systémové dotazy
         if (queryType === 'system') {
             const systemResponses = {
                 'verz': 'Používám model GPT-3.5-turbo od OpenAI. Jsem asistent pro práci s vašimi daty z Tabidoo CRM.',
                 'gpt': 'Používám model GPT-3.5-turbo, což je rychlý a efektivní model od OpenAI.',
                 'model': 'Můj model je GPT-3.5-turbo. Pro vyhledávání používám embeddings model text-embedding-ada-002.',
                 'kdo': 'Jsem AI asistent specializovaný na práci s vašimi daty z Tabidoo CRM. Umím vyhledávat, analyzovat a odpovídat na dotazy o vašich datech.',
-                'umíš': 'Umím:\n• Vyhledávat v datech (např. "najdi kontakt Jana")\n• Analyzovat data (např. "kolik máme firem")\n• Odpovídat na dotazy o datech\n• Filtrovat a třídit záznamy'
+                'umíš': 'Umím:\n• Vyhledávat v datech (např. "najdi kontakt Jana")\n• Zobrazovat seznamy (např. "vypiš všechny firmy")\n• Analyzovat data (např. "kolik máme firem")\n• Odpovídat na složité dotazy o vašich datech'
             };
             
             for (const [key, response] of Object.entries(systemResponses)) {
@@ -568,6 +636,36 @@ async function smartCallOpenAI(query) {
             return 'Jsem AI asistent pro Tabidoo CRM. Používám model GPT-3.5-turbo.';
         }
         
+        // Dotazy na výpis/seznam
+        if (queryType === 'list') {
+            const lowerQuery = query.toLowerCase();
+            
+            // Určit, kterou tabulku chce uživatel
+            if (lowerQuery.includes('firm')) {
+                const firmy = getAllRecordsFromTable('Firma');
+                return formatRecordsForDisplay(firmy, 'Firmy');
+            }
+            
+            if (lowerQuery.includes('kontakt')) {
+                const kontakty = getAllRecordsFromTable('Kontakty');
+                return formatRecordsForDisplay(kontakty, 'Kontakty');
+            }
+            
+            if (lowerQuery.includes('aktiv')) {
+                const aktivity = getAllRecordsFromTable('Aktivity');
+                return formatRecordsForDisplay(aktivity, 'Aktivity');
+            }
+            
+            if (lowerQuery.includes('obchod') || lowerQuery.includes('případ')) {
+                const obchody = getAllRecordsFromTable('Obchodní případy');
+                return formatRecordsForDisplay(obchody, 'Obchodní případy');
+            }
+            
+            // Pokud není jasné, co chce, použít GPT s daty
+            return await callOpenAIWithData(query);
+        }
+        
+        // Analytické dotazy
         if (queryType === 'analytics') {
             const analysis = analyzeDataForQuery(query);
             
@@ -575,45 +673,21 @@ async function smartCallOpenAI(query) {
                 return analysis;
             }
             
-            const stats = getDataStatistics();
-            const context = `Statistiky databáze:\n${JSON.stringify(stats, null, 2)}`;
-            
-            const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-3.5-turbo",
-                    messages: [
-                        {
-                            role: "system",
-                            content: "Jsi asistent pro Tabidoo CRM. Odpovídej na základě poskytnutých statistik. Odpovídej stručně česky."
-                        },
-                        {
-                            role: "user",
-                            content: `${context}\n\nDotaz: ${query}`
-                        }
-                    ],
-                    temperature: 0.3,
-                    max_tokens: 200
-                })
-            });
-            
-            if (!response.ok) {
-                return analysis || 'Nepodařilo se analyzovat data.';
-            }
-            
-            const data = await response.json();
-            return data.choices[0].message.content;
+            // Pro složitější analytické dotazy použít GPT
+            return await callOpenAIWithData(query);
         }
         
+        // Vyhledávací dotazy
         if (queryType === 'search') {
             let relevantData;
             
-            if (embeddingsReady) {
-                relevantData = await findRelevantData(query, 10);
+            if (embeddingsReady && typeof findRelevantData !== 'undefined') {
+                try {
+                    relevantData = await findRelevantData(query, 10);
+                } catch (error) {
+                    console.error('Embeddings error:', error);
+                    relevantData = fallbackTextSearch(query, 10);
+                }
             } else {
                 relevantData = fallbackTextSearch(query, 10);
             }
@@ -638,60 +712,15 @@ async function smartCallOpenAI(query) {
             }
             
             for (const [tableName, records] of Object.entries(grouped)) {
-                response += `**${tableName}:**\n`;
-                for (const record of records.slice(0, 5)) {
-                    const info = [];
-                    
-                    const displayFields = ['name', 'nazev', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma'];
-                    for (const field of displayFields) {
-                        if (record[field]) {
-                            info.push(`${field}: ${record[field]}`);
-                        }
-                    }
-                    
-                    if (info.length > 0) {
-                        response += `• ${info.slice(0, 3).join(', ')}\n`;
-                    }
-                }
+                response += formatRecordsForDisplay(records, tableName, 5);
                 response += '\n';
             }
             
             return response;
         }
         
-        const stats = getDataStatistics();
-        const context = `Máš přístup k databázi Tabidoo CRM s těmito tabulkami: ${Object.keys(stats.byTable).join(', ')}. Celkem ${stats.totalRecords} záznamů.`;
-        
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "system",
-                        content: `Jsi asistent pro Tabidoo CRM. ${context} Odpovídej stručně česky.`
-                    },
-                    {
-                        role: "user",
-                        content: query
-                    }
-                ],
-                temperature: 0.7,
-                max_tokens: 300
-            })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error?.message || 'OpenAI API Error');
-        }
-        
-        const data = await response.json();
-        return data.choices[0].message.content;
+        // Obecné dotazy - použít GPT s kontextem dat
+        return await callOpenAIWithData(query);
         
     } catch (error) {
         console.error('Smart search error:', error);
@@ -700,69 +729,215 @@ async function smartCallOpenAI(query) {
             return 'Chyba: Neplatný OpenAI API klíč. Zkontrolujte nastavení.';
         }
         
-        return `Omlouvám se, nastala chyba při zpracování dotazu.\n\nZkuste se zeptat jinak nebo použijte konkrétní příkazy jako:\n• "kolik máme firem"\n• "najdi kontakty"\n• "ukáž aktivity"`;
+        return `Omlouvám se, nastala chyba při zpracování dotazu.\n\nZkuste se zeptat jinak nebo použijte konkrétní příkazy jako:\n• "vypiš všechny firmy"\n• "najdi kontakt Jana"\n• "kolik máme aktivit"`;
     }
+}
+
+// Volání OpenAI s daty
+async function callOpenAIWithData(query) {
+    // Připravit kontext s daty
+    let context = "Zde jsou data z Tabidoo CRM:\n\n";
+    
+    for (const tableId in tablesData) {
+        const table = tablesData[tableId];
+        const tableData = getActualTableData(table);
+        
+       context += `**${table.name}** (${tableData.length} záznamů):\n`;
+       
+       // Přidat ukázku dat
+       const sampleData = tableData.slice(0, 5);
+       if (sampleData.length > 0) {
+           context += "Ukázka záznamů:\n";
+           sampleData.forEach((record, index) => {
+               const fields = Object.entries(record)
+                   .filter(([key, value]) => value && !key.startsWith('_'))
+                   .slice(0, 5)
+                   .map(([key, value]) => `${key}: ${value}`)
+                   .join(', ');
+               context += `${index + 1}. ${fields}\n`;
+           });
+       }
+       context += "\n";
+   }
+   
+   // Omezit délku kontextu
+   if (context.length > 10000) {
+       context = context.substring(0, 10000) + "\n\n[Data zkrácena kvůli limitu]";
+   }
+   
+   try {
+       const response = await fetch("https://api.openai.com/v1/chat/completions", {
+           method: "POST",
+           headers: {
+               "Content-Type": "application/json",
+               "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
+           },
+           body: JSON.stringify({
+               model: "gpt-3.5-turbo",
+               messages: [
+                   {
+                       role: "system",
+                       content: "Jsi asistent pro Tabidoo CRM. Máš přístup ke kompletním datům z databáze. Odpovídej na dotazy přesně podle poskytnutých dat. Když se tě někdo zeptá na seznam nebo výpis, vypiš konkrétní záznamy. Odpovídej česky."
+                   },
+                   {
+                       role: "user",
+                       content: `${context}\n\nDotaz: ${query}`
+                   }
+               ],
+               temperature: 0.3,
+               max_tokens: 1000
+           })
+       });
+       
+       if (!response.ok) {
+           const error = await response.json();
+           console.error('OpenAI API error:', error);
+           
+           // Pokud je problém s velikostí, zkusit menší kontext
+           if (error.error?.message?.includes('maximum context length')) {
+               return await callOpenAIWithMinimalData(query);
+           }
+           
+           throw new Error(error.error?.message || 'OpenAI API Error');
+       }
+       
+       const data = await response.json();
+       return data.choices[0].message.content;
+       
+   } catch (error) {
+       console.error('Error calling OpenAI:', error);
+       
+       // Fallback na lokální zpracování
+       return processQueryLocally(query);
+   }
+}
+
+// Volání OpenAI s minimálními daty
+async function callOpenAIWithMinimalData(query) {
+   const stats = getDataStatistics();
+   const context = `Databáze obsahuje: ${JSON.stringify(stats.byTable)}`;
+   
+   const response = await fetch("https://api.openai.com/v1/chat/completions", {
+       method: "POST",
+       headers: {
+           "Content-Type": "application/json",
+           "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
+       },
+       body: JSON.stringify({
+           model: "gpt-3.5-turbo",
+           messages: [
+               {
+                   role: "system",
+                   content: "Jsi asistent pro Tabidoo CRM. Odpovídej stručně česky."
+               },
+               {
+                   role: "user",
+                   content: `${context}\n\nDotaz: ${query}`
+               }
+           ],
+           temperature: 0.3,
+           max_tokens: 500
+       })
+   });
+   
+   if (!response.ok) {
+       throw new Error('OpenAI API Error');
+   }
+   
+   const data = await response.json();
+   return data.choices[0].message.content;
+}
+
+// Lokální zpracování dotazu
+function processQueryLocally(query) {
+   const lowerQuery = query.toLowerCase();
+   let response = "";
+   
+   // Zkusit najít relevantní data
+   for (const tableId in tablesData) {
+       const table = tablesData[tableId];
+       if (lowerQuery.includes(table.name.toLowerCase())) {
+           const tableData = getActualTableData(table);
+           response += formatRecordsForDisplay(tableData, table.name);
+           response += "\n\n";
+       }
+   }
+   
+   if (!response) {
+       // Zobrazit obecný přehled
+       const stats = getDataStatistics();
+       response = "Zde je přehled všech dat:\n\n";
+       
+       for (const tableId in tablesData) {
+           const table = tablesData[tableId];
+           const tableData = getActualTableData(table);
+           response += formatRecordsForDisplay(tableData.slice(0, 5), table.name, 5);
+           response += "\n";
+       }
+   }
+   
+   return response;
 }
 
 // Odeslání zprávy
 async function sendMessage() {
-    console.log('Send message clicked');
-    
-    const chatInput = document.getElementById('chat-input');
-    const sendButton = document.getElementById('send-button');
-    const messageText = chatInput.value.trim();
-    
-    if (!messageText) {
-        return;
-    }
-    
-    if (!CONFIG.OPENAI_API_KEY || !CONFIG.TABIDOO_API_TOKEN) {
-        alert('Nejprve nastavte API klíče v nastavení!');
-        toggleSettings();
-        return;
-    }
-    
-    addMessage('user', messageText);
-    chatInput.value = '';
-    
-    chatInput.disabled = true;
-    sendButton.disabled = true;
-    sendButton.textContent = 'Hledám...';
-    
-    try {
-        const response = await smartCallOpenAI(messageText);
-        addMessage('assistant', response);
-    } catch (error) {
-        console.error('Chyba při zpracování:', error);
-        addMessage('error', 'Chyba: ' + error.message);
-    } finally {
-        chatInput.disabled = false;
-        sendButton.disabled = false;
-        sendButton.textContent = 'Odeslat';
-        chatInput.focus();
-    }
+   console.log('Send message clicked');
+   
+   const chatInput = document.getElementById('chat-input');
+   const sendButton = document.getElementById('send-button');
+   const messageText = chatInput.value.trim();
+   
+   if (!messageText) {
+       return;
+   }
+   
+   if (!CONFIG.OPENAI_API_KEY || !CONFIG.TABIDOO_API_TOKEN) {
+       alert('Nejprve nastavte API klíče v nastavení!');
+       toggleSettings();
+       return;
+   }
+   
+   addMessage('user', messageText);
+   chatInput.value = '';
+   
+   chatInput.disabled = true;
+   sendButton.disabled = true;
+   sendButton.textContent = 'Zpracovávám...';
+   
+   try {
+       const response = await smartCallOpenAI(messageText);
+       addMessage('assistant', response);
+   } catch (error) {
+       console.error('Chyba při zpracování:', error);
+       addMessage('error', 'Chyba: ' + error.message);
+   } finally {
+       chatInput.disabled = false;
+       sendButton.disabled = false;
+       sendButton.textContent = 'Odeslat';
+       chatInput.focus();
+   }
 }
 
 // Inicializace
 async function init(skipDiagnostics = false) {
-    console.log('Initializing...');
-    
-    if (typeof security === 'undefined') {
-        console.error('Security manager not loaded!');
-        setTimeout(() => init(skipDiagnostics), 100);
-        return;
-    }
-    
-    loadConfig();
-    
-    const chatMessages = document.getElementById('chat-messages');
-    
-    if (!CONFIG.OPENAI_API_KEY || !CONFIG.TABIDOO_API_TOKEN || !CONFIG.TABIDOO_APP_ID) {
-        chatMessages.innerHTML = '';
-        addMessage('system', '⚙️ Vítejte! Pro začátek nastavte API klíče v nastavení (ikona ⚙️ vpravo nahoře).');
-        
-        document.getElementById('chat-input').addEventListener('keydown', function(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
+   console.log('Initializing...');
+   
+   if (typeof security === 'undefined') {
+       console.error('Security manager not loaded!');
+       setTimeout(() => init(skipDiagnostics), 100);
+       return;
+   }
+   
+   loadConfig();
+   
+   const chatMessages = document.getElementById('chat-messages');
+   
+   if (!CONFIG.OPENAI_API_KEY || !CONFIG.TABIDOO_API_TOKEN || !CONFIG.TABIDOO_APP_ID) {
+       chatMessages.innerHTML = '';
+       addMessage('system', '⚙️ Vítejte! Pro začátek nastavte API klíče v nastavení (ikona ⚙️ vpravo nahoře).');
+       
+       document.getElementById('chat-input').addEventListener('keydown', function(event) {
+           if (event.key === 'Enter' && !event.shiftKey) {
                event.preventDefault();
                sendMessage();
            }
@@ -785,7 +960,10 @@ async function init(skipDiagnostics = false) {
        chatMessages.innerHTML = '';
        
        // Zkontrolovat embeddings
-       if (!checkEmbeddings()) {
+       if (typeof checkEmbeddings !== 'undefined' && checkEmbeddings()) {
+           embeddingsReady = true;
+           addMessage('system', '✓ Systém je připraven k inteligentnímu vyhledávání.');
+       } else if (typeof createEmbeddings !== 'undefined') {
            addMessage('system', 'Vytvářím vyhledávací index pro rychlé vyhledávání...');
            
            try {
@@ -800,17 +978,17 @@ async function init(skipDiagnostics = false) {
                embeddingsReady = false;
            }
        } else {
-           embeddingsReady = true;
-           addMessage('system', '✓ Systém je připraven k inteligentnímu vyhledávání.');
+           embeddingsReady = false;
+           addMessage('system', '✓ Systém je připraven.');
        }
        
        setTimeout(() => {
            addMessage('assistant', 
                'Můžete se ptát na cokoliv z vašich dat. Například:\n' +
-               '• "Kolik máme firem?"\n' +
-               '• "Najdi kontakty"\n' +
-               '• "Jakou verzi GPT používáš?"\n' +
-               '• "Seznam obchodních případů"'
+               '• "Vypiš všechny firmy"\n' +
+               '• "Jaké kontakty máme v systému?"\n' +
+               '• "Kolik máme aktivních obchodních případů?"\n' +
+               '• "Najdi firmu ABC"'
            );
        }, 1000);
        
@@ -833,3 +1011,4 @@ window.onload = function() {
    console.log('Window loaded, starting init...');
    setTimeout(init, 100);
 };
+        
