@@ -370,6 +370,7 @@ async function loadTabidooData() {
         try {
             tablesData = JSON.parse(cachedData);
             console.log('Data načtena z cache, stáří:', cacheAgeHours.toFixed(1), 'hodin');
+            console.log('Loaded tables:', Object.keys(tablesData));
             return true;
         } catch (error) {
             console.error('Chyba při načítání dat z cache:', error);
@@ -390,6 +391,7 @@ async function loadTabidooData() {
                     name: table.name,
                     data: data
                 };
+                console.log(`Tabulka ${table.name} uložena`);
             }
         } catch (error) {
             console.error(`Chyba při načítání tabulky ${table.name}:`, error);
@@ -760,17 +762,17 @@ async function init(skipDiagnostics = false) {
         addMessage('system', '⚙️ Vítejte! Pro začátek nastavte API klíče v nastavení (ikona ⚙️ vpravo nahoře).');
         
         document.getElementById('chat-input').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-        return;
-    }
-    
-    // Spustit diagnostiku při prvním spuštění
-    if (!skipDiagnostics && !localStorage.getItem('diagnostics_completed')) {
-    const diagnosticsOk = await runDiagnostics();
+    if (event.key === 'Enter' && !event.shiftKey) {
+               event.preventDefault();
+               sendMessage();
+           }
+       });
+       return;
+   }
+   
+   // Spustit diagnostiku při prvním spuštění
+   if (!skipDiagnostics && !localStorage.getItem('diagnostics_completed')) {
+       const diagnosticsOk = await runDiagnostics();
        localStorage.setItem('diagnostics_completed', 'true');
        return;
    }
@@ -817,6 +819,7 @@ async function init(skipDiagnostics = false) {
        addMessage('error', 'Nepodařilo se načíst data z Tabidoo. Zkontrolujte nastavení API.');
    }
    
+   // Event listener pro Enter
    document.getElementById('chat-input').addEventListener('keydown', function(event) {
        if (event.key === 'Enter' && !event.shiftKey) {
            event.preventDefault();
@@ -829,4 +832,4 @@ async function init(skipDiagnostics = false) {
 window.onload = function() {
    console.log('Window loaded, starting init...');
    setTimeout(init, 100);
-};    
+};
