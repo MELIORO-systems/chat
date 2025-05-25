@@ -158,7 +158,7 @@ async function refreshData() {
 
 // Přidání zprávy do chatu
 function addMessage(role, content) {
-    console.log('Adding message:', role, content);
+    console.log('Adding message:', role, content.substring(0, 100));
     
     const chatMessages = document.getElementById('chat-messages');
     const messageElement = document.createElement('div');
@@ -422,7 +422,7 @@ function getActualTableData(table) {
     return [];
 }
 
-// Analyzovat typ dotazu - VYLEPŠENÁ VERZE
+// Analyzovat typ dotazu - OPRAVENÁ VERZE
 function analyzeQueryType(query) {
     const lowerQuery = query.toLowerCase();
     
@@ -432,26 +432,34 @@ function analyzeQueryType(query) {
         return 'system';
     }
     
-    // Dotazy na seznam/výpis
-    if (lowerQuery.includes('vypiš') || lowerQuery.includes('seznam') || lowerQuery.includes('názvy') ||
-        lowerQuery.includes('jména') || lowerQuery.includes('všechny') || lowerQuery.includes('ukáž')) {
+    // Dotazy na výpis/seznam - PRIORITA!
+    if (lowerQuery.includes('vypiš') || lowerQuery.includes('seznam') || 
+        lowerQuery.includes('jaké') || lowerQuery.includes('které') || 
+        lowerQuery.includes('názvy') || lowerQuery.includes('jména') || 
+        lowerQuery.includes('všechny') || lowerQuery.includes('ukáž') ||
+        lowerQuery.includes('zobraz')) {
         return 'list';
     }
     
-    // Analytické dotazy
-    if (lowerQuery.includes('kolik') || lowerQuery.includes('počet') || lowerQuery.includes('součet') ||
-        lowerQuery.includes('průměr') || lowerQuery.includes('celkem') || lowerQuery.includes('statistik')) {
+    // Analytické dotazy - pouze čísla
+    if (lowerQuery.includes('kolik') || lowerQuery.includes('počet') || 
+        lowerQuery.includes('součet') || lowerQuery.includes('průměr') || 
+        lowerQuery.includes('celkem') || lowerQuery.includes('statistik')) {
         return 'analytics';
     }
     
-    // Vyhledávací dotazy
-    if (lowerQuery.includes('najdi') || lowerQuery.includes('vyhledej') || lowerQuery.includes('hledej')) {
+    // Vyhledávací dotazy - konkrétní hledání
+    if (lowerQuery.includes('najdi') || lowerQuery.includes('vyhledej') || 
+        lowerQuery.includes('hledej')) {
         return 'search';
     }
     
-    // Pokud obsahuje název tabulky, je to pravděpodobně dotaz na data
-    if (lowerQuery.includes('firm') || lowerQuery.includes('kontakt') || 
-        lowerQuery.includes('aktiv') || lowerQuery.includes('obchod') || lowerQuery.includes('případ')) {
+    // Pokud obsahuje název entity a ptá se na konkrétní věci
+    if ((lowerQuery.includes('firm') || lowerQuery.includes('kontakt') || 
+         lowerQuery.includes('aktiv') || lowerQuery.includes('obchod') || 
+         lowerQuery.includes('případ')) && 
+        (lowerQuery.includes('konkrét') || lowerQuery.includes('jsou') || 
+         lowerQuery.includes('máme'))) {
         return 'list';
     }
     
@@ -482,13 +490,16 @@ function getAllRecordsFromTable(tableName) {
     for (const tableId in tablesData) {
         const table = tablesData[tableId];
         if (table.name.toLowerCase().includes(tableName.toLowerCase())) {
-            return getActualTableData(table);
+            return {
+                tableName: table.name,
+                data: getActualTableData(table)
+            };
         }
     }
-    return [];
+    return { tableName: tableName, data: [] };
 }
 
-// Formátovat záznamy pro zobrazení
+// Formátovat záznamy pro zobrazení - VYLEPŠENÁ VERZE
 function formatRecordsForDisplay(records, tableName, maxRecords = 20) {
     if (!records || records.length === 0) {
         return `Nenašel jsem žádné záznamy v tabulce ${tableName}.`;
@@ -501,26 +512,25 @@ function formatRecordsForDisplay(records, tableName, maxRecords = 20) {
     displayRecords.forEach((record, index) => {
         output += `${index + 1}. `;
         
-        // Prioritní pole pro zobrazení
-        const importantFields = ['name', 'nazev', 'Name', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma', 'company'];
-        const displayedFields = [];
+        // Zjistit všechna pole záznamu
+        const fields = Object.entries(record)
+            .filter(([key, value]) => value && !key.startsWith('_') && !key.includes('id'))
+            .slice(0, 5);
         
-        for (const field of importantFields) {
-            if (record[field]) {
-                displayedFields.push(`${field}: ${record[field]}`);
-            }
+        if (fields.length > 0) {
+            const formattedFields = fields.map(([key, value]) => {
+                // Zkrátit dlouhé hodnoty
+                const displayValue = String(value).length > 50 ? 
+                    String(value).substring(0, 50) + '...' : value;
+                return `${key}: ${displayValue}`;
+            });
+            output += formattedFields.join(', ');
+        } else {
+            // Pokud nejsou žádná pole, zobrazit ID
+            output += `ID: ${record.id || 'neznámé'}`;
         }
         
-        // Pokud nejsou důležitá pole, zobrazit první 3 neprázdná pole
-        if (displayedFields.length === 0) {
-            for (const [key, value] of Object.entries(record)) {
-                if (value && !key.startsWith('_') && displayedFields.length < 3) {
-                    displayedFields.push(`${key}: ${value}`);
-                }
-            }
-        }
-        
-        output += displayedFields.join(', ') + '\n';
+        output += '\n';
     });
     
     if (records.length > maxRecords) {
@@ -568,9 +578,11 @@ function analyzeDataForQuery(query) {
 }
 
 // Fallback textové vyhledávání
-function fallbackTextSearch(query, topK = 5) {
+function fallbackTextSearch(query, topK = 10) {
     const results = [];
     const searchTerms = query.toLowerCase().split(' ').filter(t => t.length > 1);
+    
+    console.log('Fallback search for:', searchTerms);
     
     for (const tableId in tablesData) {
         const table = tablesData[tableId];
@@ -584,6 +596,7 @@ function fallbackTextSearch(query, topK = 5) {
                 if (recordText.includes(term)) {
                     score += 1;
                     
+                    // Bonus za shodu v důležitých polích
                     const importantFields = ['name', 'nazev', 'jmeno', 'prijmeni', 'email', 'firma'];
                     for (const field of importantFields) {
                         if (record[field] && String(record[field]).toLowerCase().includes(term)) {
@@ -598,7 +611,7 @@ function fallbackTextSearch(query, topK = 5) {
                     tableId: tableId,
                     tableName: table.name,
                     record: record,
-                    similarity: score / searchTerms.length
+                    similarity: score / (searchTerms.length || 1)
                 });
             }
         }
@@ -609,7 +622,7 @@ function fallbackTextSearch(query, topK = 5) {
         .slice(0, topK);
 }
 
-// Smart volání OpenAI - KOMPLETNĚ PŘEPRACOVANÉ
+// Smart volání OpenAI - OPRAVENÁ VERZE
 async function smartCallOpenAI(query) {
     console.log('Smart call OpenAI for query:', query);
     
@@ -636,36 +649,47 @@ async function smartCallOpenAI(query) {
             return 'Jsem AI asistent pro Tabidoo CRM. Používám model GPT-3.5-turbo.';
         }
         
-        // Dotazy na výpis/seznam
+        // Dotazy na výpis/seznam - PRIORITA!
         if (queryType === 'list') {
             const lowerQuery = query.toLowerCase();
             
             // Určit, kterou tabulku chce uživatel
             if (lowerQuery.includes('firm')) {
-                const firmy = getAllRecordsFromTable('Firma');
-                return formatRecordsForDisplay(firmy, 'Firmy');
+                const result = getAllRecordsFromTable('Firma');
+                return formatRecordsForDisplay(result.data, result.tableName);
             }
             
             if (lowerQuery.includes('kontakt')) {
-                const kontakty = getAllRecordsFromTable('Kontakty');
-                return formatRecordsForDisplay(kontakty, 'Kontakty');
+                const result = getAllRecordsFromTable('Kontakty');
+                return formatRecordsForDisplay(result.data, result.tableName);
             }
             
             if (lowerQuery.includes('aktiv')) {
-                const aktivity = getAllRecordsFromTable('Aktivity');
-                return formatRecordsForDisplay(aktivity, 'Aktivity');
+                const result = getAllRecordsFromTable('Aktivity');
+                return formatRecordsForDisplay(result.data, result.tableName);
             }
             
             if (lowerQuery.includes('obchod') || lowerQuery.includes('případ')) {
-                const obchody = getAllRecordsFromTable('Obchodní případy');
-                return formatRecordsForDisplay(obchody, 'Obchodní případy');
+                const result = getAllRecordsFromTable('Obchodní případy');
+                return formatRecordsForDisplay(result.data, result.tableName);
             }
             
-            // Pokud není jasné, co chce, použít GPT s daty
+            // Pokud chce všechno
+            if (lowerQuery.includes('všech') || lowerQuery.includes('všeho')) {
+                let output = "Zde je přehled všech dat v systému:\n\n";
+                for (const tableId in tablesData) {
+                    const table = tablesData[tableId];
+                    const tableData = getActualTableData(table);
+                    output += formatRecordsForDisplay(tableData, table.name, 5) + "\n\n";
+                }
+                return output;
+            }
+            
+            // Použít GPT pro interpretaci
             return await callOpenAIWithData(query);
         }
         
-        // Analytické dotazy
+        // Analytické dotazy - pouze čísla
         if (queryType === 'analytics') {
             const analysis = analyzeDataForQuery(query);
             
@@ -679,32 +703,18 @@ async function smartCallOpenAI(query) {
         
         // Vyhledávací dotazy
         if (queryType === 'search') {
-            let relevantData;
+            const searchTerms = query.toLowerCase().split(' ').filter(t => t.length > 2);
+            const results = fallbackTextSearch(query, 20);
             
-            if (embeddingsReady && typeof findRelevantData !== 'undefined') {
-                try {
-                    relevantData = await findRelevantData(query, 10);
-                } catch (error) {
-                    console.error('Embeddings error:', error);
-                    relevantData = fallbackTextSearch(query, 10);
-                }
-            } else {
-                relevantData = fallbackTextSearch(query, 10);
+            if (results.length === 0) {
+                return `Nenašel jsem žádné záznamy odpovídající "${query}".\n\nTip: Zkuste zadat konkrétní jméno, email nebo název firmy.`;
             }
             
-            if (relevantData.length === 0) {
-                const searchTerm = query.split(' ').pop().toLowerCase();
-                relevantData = fallbackTextSearch(searchTerm, 5);
-                
-                if (relevantData.length === 0) {
-                    return `Nenašel jsem žádné záznamy odpovídající "${query}".\n\nTip: Zkuste zadat konkrétní jméno, email nebo název firmy.`;
-                }
-            }
+            let response = `Našel jsem ${results.length} relevantních záznamů:\n\n`;
             
-            let response = `Našel jsem ${relevantData.length} relevantních záznamů:\n\n`;
-            
+            // Seskupit podle tabulek
             const grouped = {};
-            for (const item of relevantData.slice(0, 10)) {
+            for (const item of results) {
                 if (!grouped[item.tableName]) {
                     grouped[item.tableName] = [];
                 }
@@ -712,14 +722,14 @@ async function smartCallOpenAI(query) {
             }
             
             for (const [tableName, records] of Object.entries(grouped)) {
-                response += formatRecordsForDisplay(records, tableName, 5);
+                response += formatRecordsForDisplay(records, tableName, 10);
                 response += '\n';
             }
             
             return response;
         }
         
-        // Obecné dotazy - použít GPT s kontextem dat
+        // Obecné dotazy - použít GPT
         return await callOpenAIWithData(query);
         
     } catch (error) {
@@ -729,40 +739,41 @@ async function smartCallOpenAI(query) {
             return 'Chyba: Neplatný OpenAI API klíč. Zkontrolujte nastavení.';
         }
         
-        return `Omlouvám se, nastala chyba při zpracování dotazu.\n\nZkuste se zeptat jinak nebo použijte konkrétní příkazy jako:\n• "vypiš všechny firmy"\n• "najdi kontakt Jana"\n• "kolik máme aktivit"`;
-    }
+ return `Omlouvám se, nastala chyba při zpracování dotazu.\n\nZkuste se zeptat jinak nebo použijte konkrétní příkazy jako:\n• "vypiš všechny firmy"\n• "najdi kontakt Jana"\n• "kolik máme aktivit"`;
+   }
 }
 
 // Volání OpenAI s daty
 async function callOpenAIWithData(query) {
-    // Připravit kontext s daty
-    let context = "Zde jsou data z Tabidoo CRM:\n\n";
-    
-    for (const tableId in tablesData) {
-        const table = tablesData[tableId];
-        const tableData = getActualTableData(table);
-        
+   // Připravit kontext s daty
+   let context = "Zde jsou data z Tabidoo CRM:\n\n";
+   let totalChars = 0;
+   const maxChars = 8000; // Limit pro kontext
+   
+   for (const tableId in tablesData) {
+       const table = tablesData[tableId];
+       const tableData = getActualTableData(table);
+       
+       if (totalChars > maxChars) break;
+       
        context += `**${table.name}** (${tableData.length} záznamů):\n`;
        
-       // Přidat ukázku dat
-       const sampleData = tableData.slice(0, 5);
-       if (sampleData.length > 0) {
-           context += "Ukázka záznamů:\n";
-           sampleData.forEach((record, index) => {
-               const fields = Object.entries(record)
-                   .filter(([key, value]) => value && !key.startsWith('_'))
-                   .slice(0, 5)
-                   .map(([key, value]) => `${key}: ${value}`)
-                   .join(', ');
-               context += `${index + 1}. ${fields}\n`;
-           });
+       // Přidat všechna data nebo ukázku podle velikosti
+       const dataToShow = tableData.length > 10 ? tableData.slice(0, 10) : tableData;
+       
+       dataToShow.forEach((record, index) => {
+           if (totalChars > maxChars) return;
+           
+           const recordStr = JSON.stringify(record);
+           context += `${index + 1}. ${recordStr}\n`;
+           totalChars += recordStr.length;
+       });
+       
+       if (tableData.length > 10) {
+           context += `... a dalších ${tableData.length - 10} záznamů\n`;
        }
+       
        context += "\n";
-   }
-   
-   // Omezit délku kontextu
-   if (context.length > 10000) {
-       context = context.substring(0, 10000) + "\n\n[Data zkrácena kvůli limitu]";
    }
    
    try {
@@ -777,7 +788,7 @@ async function callOpenAIWithData(query) {
                messages: [
                    {
                        role: "system",
-                       content: "Jsi asistent pro Tabidoo CRM. Máš přístup ke kompletním datům z databáze. Odpovídej na dotazy přesně podle poskytnutých dat. Když se tě někdo zeptá na seznam nebo výpis, vypiš konkrétní záznamy. Odpovídej česky."
+                       content: "Jsi asistent pro Tabidoo CRM. Máš přístup ke kompletním datům z databáze. Odpovídej na dotazy přesně podle poskytnutých dat. Když se tě někdo zeptá na seznam nebo konkrétní data, vypiš je. Odpovídej česky."
                    },
                    {
                        role: "user",
@@ -785,19 +796,13 @@ async function callOpenAIWithData(query) {
                    }
                ],
                temperature: 0.3,
-               max_tokens: 1000
+               max_tokens: 1500
            })
        });
        
        if (!response.ok) {
            const error = await response.json();
            console.error('OpenAI API error:', error);
-           
-           // Pokud je problém s velikostí, zkusit menší kontext
-           if (error.error?.message?.includes('maximum context length')) {
-               return await callOpenAIWithMinimalData(query);
-           }
-           
            throw new Error(error.error?.message || 'OpenAI API Error');
        }
        
@@ -807,45 +812,9 @@ async function callOpenAIWithData(query) {
    } catch (error) {
        console.error('Error calling OpenAI:', error);
        
-       // Fallback na lokální zpracování
+       // Fallback - zkusit lokální zpracování
        return processQueryLocally(query);
    }
-}
-
-// Volání OpenAI s minimálními daty
-async function callOpenAIWithMinimalData(query) {
-   const stats = getDataStatistics();
-   const context = `Databáze obsahuje: ${JSON.stringify(stats.byTable)}`;
-   
-   const response = await fetch("https://api.openai.com/v1/chat/completions", {
-       method: "POST",
-       headers: {
-           "Content-Type": "application/json",
-           "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
-       },
-       body: JSON.stringify({
-           model: "gpt-3.5-turbo",
-           messages: [
-               {
-                   role: "system",
-                   content: "Jsi asistent pro Tabidoo CRM. Odpovídej stručně česky."
-               },
-               {
-                   role: "user",
-                   content: `${context}\n\nDotaz: ${query}`
-               }
-           ],
-           temperature: 0.3,
-           max_tokens: 500
-       })
-   });
-   
-   if (!response.ok) {
-       throw new Error('OpenAI API Error');
-   }
-   
-   const data = await response.json();
-   return data.choices[0].message.content;
 }
 
 // Lokální zpracování dotazu
@@ -853,27 +822,36 @@ function processQueryLocally(query) {
    const lowerQuery = query.toLowerCase();
    let response = "";
    
-   // Zkusit najít relevantní data
+   // Pokud se ptá na konkrétní tabulku
    for (const tableId in tablesData) {
        const table = tablesData[tableId];
        if (lowerQuery.includes(table.name.toLowerCase())) {
            const tableData = getActualTableData(table);
            response += formatRecordsForDisplay(tableData, table.name);
-           response += "\n\n";
+           return response;
        }
    }
    
-   if (!response) {
-       // Zobrazit obecný přehled
-       const stats = getDataStatistics();
-       response = "Zde je přehled všech dat:\n\n";
+   // Jinak zobrazit přehled
+   response = "Zde je přehled všech dat v databázi:\n\n";
+   for (const tableId in tablesData) {
+       const table = tablesData[tableId];
+       const tableData = getActualTableData(table);
+       response += `**${table.name}**: ${tableData.length} záznamů\n`;
        
-       for (const tableId in tablesData) {
-           const table = tablesData[tableId];
-           const tableData = getActualTableData(table);
-           response += formatRecordsForDisplay(tableData.slice(0, 5), table.name, 5);
-           response += "\n";
+       // Ukázka prvních záznamů
+       if (tableData.length > 0) {
+           response += "První záznamy:\n";
+           tableData.slice(0, 3).forEach((record, index) => {
+               const preview = Object.entries(record)
+                   .filter(([key, value]) => value && !key.startsWith('_'))
+                   .slice(0, 3)
+                   .map(([key, value]) => `${key}: ${value}`)
+                   .join(', ');
+               response += `${index + 1}. ${preview}\n`;
+           });
        }
+       response += "\n";
    }
    
    return response;
@@ -982,6 +960,17 @@ async function init(skipDiagnostics = false) {
            addMessage('system', '✓ Systém je připraven.');
        }
        
+       // Debug info o datech
+       console.log('Data loaded summary:');
+       for (const tableId in tablesData) {
+           const table = tablesData[tableId];
+           const tableData = getActualTableData(table);
+           console.log(`- ${table.name}: ${tableData.length} records`);
+           if (tableData.length > 0) {
+               console.log(`  Sample record:`, tableData[0]);
+           }
+       }
+       
        setTimeout(() => {
            addMessage('assistant', 
                'Můžete se ptát na cokoliv z vašich dat. Například:\n' +
@@ -1011,4 +1000,3 @@ window.onload = function() {
    console.log('Window loaded, starting init...');
    setTimeout(init, 100);
 };
-        
