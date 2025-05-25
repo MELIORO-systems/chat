@@ -354,3 +354,11 @@ body {
         max-height: 80vh;
     }
 }
+.diagnostic-message {
+    background-color: #f0f0f0;
+    border-left: 4px solid #2196F3;
+    margin: 10px 0;
+    padding: 10px 15px;
+    font-family: monospace;
+    font-size: 14px;
+}
