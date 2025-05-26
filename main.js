@@ -1,10 +1,11 @@
-// Hlavní aplikační logika
+// Hlavní aplikační logika - NOVÁ HYBRIDNÍ VERZE
 
 // Globální proměnné
 let APP_CONFIG = {};
 let tablesData = {};
 let messages = [];
 let embeddingsReady = false;
+let queryProcessor = null; // Náš nový procesor dotazů
 
 // Načtení konfigurace
 function loadConfig() {
@@ -144,9 +145,9 @@ function importConfig() {
     input.click();
 }
 
-// Odeslání zprávy
+// NOVÁ FUNKCE - Odeslání zprávy s hybridním přístupem
 async function sendMessage() {
-    console.log('Send message clicked');
+    console.log('🚀 Send message clicked - HYBRID VERSION');
     
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
@@ -156,26 +157,52 @@ async function sendMessage() {
         return;
     }
     
-    if (!APP_CONFIG.OPENAI_API_KEY || !APP_CONFIG.TABIDOO_API_TOKEN) {
-        alert(CONFIG.MESSAGES.API_KEY_ERROR);
+    if (!APP_CONFIG.TABIDOO_API_TOKEN) {
+        alert('Nejprve nastavte Tabidoo API token!');
         toggleSettings();
         return;
     }
     
+    // Přidat uživatelovu zprávu
     addMessage('user', messageText);
     chatInput.value = '';
     
+    // Nastavit loading stav
     chatInput.disabled = true;
     sendButton.disabled = true;
     sendButton.textContent = 'Zpracovávám...';
     
     try {
-        const response = await smartCallOpenAI(messageText);
-        addMessage('assistant', response);
+        // NOVÁ LOGIKA - Použít query processor
+        const result = await queryProcessor.processQuery(messageText);
+        console.log('📤 Query result:', result);
+        
+        // Zobrazit odpověď
+        addMessage('assistant', result.response);
+        
+        // Debug info do konzole
+        console.log('🔍 Query type:', result.type);
+        if (result.count !== undefined) {
+            console.log('📊 Count:', result.count);
+        }
+        if (result.records) {
+            console.log('📋 Records found:', result.records.length);
+        }
+        
     } catch (error) {
-        console.error('Chyba při zpracování:', error);
-        addMessage('error', 'Chyba: ' + error.message);
+        console.error('❌ Error processing query:', error);
+        
+        // Fallback na starý způsob
+        try {
+            console.log('🔄 Trying fallback...');
+            const fallbackResponse = await smartCallOpenAI(messageText);
+            addMessage('assistant', fallbackResponse);
+        } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+            addMessage('error', 'Omlouvám se, nastala chyba při zpracování dotazu. Zkuste to prosím znovu.');
+        }
     } finally {
+        // Obnovit UI
         chatInput.disabled = false;
         sendButton.disabled = false;
         sendButton.textContent = 'Odeslat';
@@ -183,8 +210,153 @@ async function sendMessage() {
     }
 }
 
-// Spuštění aplikace
+// NOVÁ FUNKCE - Inicializace query processoru
+function initializeQueryProcessor() {
+    console.log('🧠 Initializing Query Processor...');
+    
+    if (!queryProcessor && Object.keys(tablesData).length > 0) {
+        queryProcessor = new QueryProcessor(tablesData);
+        console.log('✅ Query Processor initialized');
+        
+        // Zobrazit debug info
+        const stats = queryProcessor.getEntityStats();
+        console.log('📊 Data statistics:', stats);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+// UPRAVENÁ FUNKCE - Spuštění aplikace s novým systémem
 window.onload = function() {
-    console.log('Window loaded, starting init...');
-    setTimeout(init, 100);
+    console.log('🌟 Window loaded, starting HYBRID init...');
+    setTimeout(hybridInit, 100);
+};
+
+// NOVÁ FUNKCE - Hybridní inicializace
+async function hybridInit() {
+    console.log('🚀 Starting hybrid initialization...');
+    
+    if (typeof security === 'undefined') {
+        console.error('❌ Security manager not loaded!');
+        setTimeout(() => hybridInit(), 100);
+        return;
+    }
+    
+    loadConfig();
+    
+    const chatMessages = document.getElementById('chat-messages');
+    
+    // Pokud nemáme API klíče
+    if (!APP_CONFIG.TABIDOO_API_TOKEN || !APP_CONFIG.TABIDOO_APP_ID) {
+        chatMessages.innerHTML = '';
+        addMessage('system', CONFIG.MESSAGES.WELCOME);
+        
+        document.getElementById('chat-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+        return;
+    }
+    
+    // Zobrazit loading zprávu
+    chatMessages.innerHTML = `<div class="message system-message">🔄 Načítám data a inicializuji hybridní systém...</div>`;
+    
+    try {
+        // 1. Načíst data
+        console.log('📊 Loading Tabidoo data...');
+        const dataLoaded = await loadTabidooData();
+        
+        if (!dataLoaded) {
+            throw new Error('Failed to load Tabidoo data');
+        }
+        
+        // 2. Inicializovat query processor
+        console.log('🧠 Initializing query processor...');
+        const processorReady = initializeQueryProcessor();
+        
+        if (!processorReady) {
+            throw new Error('Failed to initialize query processor');
+        }
+        
+        // 3. Úspěšná inicializace
+        chatMessages.innerHTML = '';
+        addMessage('system', '✅ Hybridní systém je připraven!');
+        
+        setTimeout(() => {
+            addMessage('assistant', `🎯 Nový hybridní systém je aktivní!
+
+**Výhody:**
+• Rychlé lokální vyhledávání
+• Přesné počítání záznamů  
+• Inteligentní rozpoznávání dotazů
+• ChatGPT jen pro formulaci odpovědí
+
+**Zkuste například:**
+• "Kolik je firem v systému?"
+• "Vypiš všechny firmy"
+• "Najdi firmu Noviko"
+• "Podrobnosti o firmě XYZ"`);
+        }, 1000);
+        
+        // Debug info
+        const stats = queryProcessor.getEntityStats();
+        console.log('📈 System ready with data:', stats);
+        
+    } catch (error) {
+        console.error('❌ Hybrid initialization failed:', error);
+        chatMessages.innerHTML = '';
+        addMessage('error', '❌ Chyba při inicializaci hybridního systému. Zkontrolujte nastavení API.');
+        
+        // Fallback na starý systém
+        console.log('🔄 Falling back to old system...');
+        setTimeout(() => {
+            init(true); // Spustit starý systém
+        }, 2000);
+    }
+    
+    // Přidat event listener pro Enter
+    document.getElementById('chat-input').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+}
+
+// NOVÁ FUNKCE - Debug funkce pro testování
+window.debugQueryProcessor = function(query) {
+    if (!queryProcessor) {
+        console.log('❌ Query processor not initialized');
+        return;
+    }
+    
+    console.log('🔍 Debug query:', query);
+    queryProcessor.processQuery(query).then(result => {
+        console.log('📤 Debug result:', result);
+    });
+};
+
+// NOVÁ FUNKCE - Získání statistik systému
+window.getSystemStats = function() {
+    if (!queryProcessor) {
+        console.log('❌ Query processor not initialized');
+        return;
+    }
+    
+    const stats = queryProcessor.getEntityStats();
+    console.log('📊 System Statistics:', stats);
+    return stats;
+};
+
+// Export pro testování
+window.hybridSystem = {
+    queryProcessor: () => queryProcessor,
+    tablesData: () => tablesData,
+    sendMessage: sendMessage,
+    debugQuery: window.debugQueryProcessor,
+    getStats: window.getSystemStats
 };
