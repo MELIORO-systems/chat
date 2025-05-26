@@ -71,6 +71,10 @@ class QueryProcessor {
             parameters: {}
         };
         
+        // VŽDY extrahovat entitu na začátku
+        analysis.entity = this.extractEntity(lowerQuery);
+        analysis.entityName = this.extractEntityName(query);
+        
         // Systémové dotazy
         if (this.isSystemQuery(lowerQuery)) {
             analysis.type = 'system';
@@ -80,23 +84,17 @@ class QueryProcessor {
         // Počítání záznamů
         if (this.isCountQuery(lowerQuery)) {
             analysis.type = 'count';
-            analysis.entity = this.extractEntity(lowerQuery);
             return analysis;
         }
         
         // Výpis všech záznamů
         if (this.isListAllQuery(lowerQuery)) {
             analysis.type = 'list_all';
-            analysis.entity = this.extractEntity(lowerQuery);
             return analysis;
         }
         
         // Hledání konkrétní entity
-        const entityName = this.extractEntityName(query);
-        if (entityName) {
-            analysis.entityName = entityName;
-            analysis.entity = this.extractEntity(lowerQuery);
-            
+        if (analysis.entityName) {
             // Detaily o konkrétní entitě
             if (this.isDetailsQuery(lowerQuery)) {
                 analysis.type = 'get_details';
@@ -153,20 +151,46 @@ class QueryProcessor {
         return relatedKeywords.some(keyword => query.includes(keyword));
     }
     
-    // Extrakce typu entity (firma, kontakt, atd.) - OPRAVENÁ VERZE
+    // Extrakce typu entity (firma, kontakt, atd.) - DEBUGGING VERZE
     extractEntity(query) {
+        console.log('🔍 extractEntity called with:', query);
+        
         // Všechny možné tvary slova "firma" a související termíny
-        const companyKeywords = ['firm', 'firem', 'firmy', 'firmu', 'firmě', 'firmou', 'společnost', 'společnosti', 'společností', 'podnik', 'organizac'];
+        const companyKeywords = ['firm', 'firem', 'firmy', 'firmu', 'firmě', 'firmou', 'společnost', 'společnosti', 'společností', 'společnostmi', 'podnik', 'organizac'];
         const contactKeywords = ['kontakt', 'kontakty', 'kontaktů', 'kontaktem', 'osob', 'osoby', 'lidí', 'lidi', 'člověk'];
         const activityKeywords = ['aktiv', 'aktivit', 'aktivy', 'úkol', 'úkolů', 'událost', 'události', 'úloha'];
         const dealKeywords = ['obchod', 'obchodů', 'obchody', 'deal', 'dealy', 'případ', 'případy', 'případů', 'prodej', 'prodeje', 'nabíd', 'nabídky'];
         
-        // Kontrola všech klíčových slov
-        if (companyKeywords.some(keyword => query.includes(keyword))) return 'company';
-        if (contactKeywords.some(keyword => query.includes(keyword))) return 'contact';
-        if (activityKeywords.some(keyword => query.includes(keyword))) return 'activity';
-        if (dealKeywords.some(keyword => query.includes(keyword))) return 'deal';
-            
+        // Kontrola všech klíčových slov s debugováním
+        for (const keyword of companyKeywords) {
+            if (query.includes(keyword)) {
+                console.log('✅ Found company keyword:', keyword);
+                return 'company';
+            }
+        }
+        
+        for (const keyword of contactKeywords) {
+            if (query.includes(keyword)) {
+                console.log('✅ Found contact keyword:', keyword);
+                return 'contact';
+            }
+        }
+        
+        for (const keyword of activityKeywords) {
+            if (query.includes(keyword)) {
+                console.log('✅ Found activity keyword:', keyword);
+                return 'activity';
+            }
+        }
+        
+        for (const keyword of dealKeywords) {
+            if (query.includes(keyword)) {
+                console.log('✅ Found deal keyword:', keyword);
+                return 'deal';
+            }
+        }
+        
+        console.log('❌ No entity found in query:', query);
         return null;
     }
     
