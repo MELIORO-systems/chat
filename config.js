@@ -84,7 +84,7 @@ const CONFIG = {
     
     // Mapování polí
     FIELD_MAPPINGS: {
-        IMPORTANT_FIELDS: ['name', 'nazev', 'Name', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma', 'company'],
+        IMPORTANT_FIELDS: ['name', 'nazev', 'Name', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma', 'company', 'owner', 'status', 'type', 'category', 'title', 'clients', 'activities', 'city', 'street', 'ZIP'],
         HIDDEN_FIELDS: ['_id', '_created', '_modified', '_creator'],
         FIELD_LABELS: {
             'name': 'Jméno',
