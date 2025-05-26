@@ -87,14 +87,25 @@ const CONFIG = {
         IMPORTANT_FIELDS: ['name', 'nazev', 'Name', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma', 'company'],
         HIDDEN_FIELDS: ['_id', '_created', '_modified', '_creator'],
         FIELD_LABELS: {
-            'name': 'Název',
-            'nazev': 'Název',
-            'jmeno': 'Jméno',
-            'prijmeni': 'Příjmení',
-            'email': 'E-mail',
-            'telefon': 'Telefon',
-            'firma': 'Firma',
-            'company': 'Společnost'
+FIELD_LABELS: {
+    'name': 'Jméno',
+    'nazev': 'Název',
+    'jmeno': 'Jméno',
+    'prijmeni': 'Příjmení',
+    'email': 'E-mail',
+    'telefon': 'Telefon',
+    'firma': 'Firma',
+    'company': 'Společnost',
+    'owner': 'Vlastník',
+    'status': 'Stav',
+    'type': 'Typ',
+    'category': 'Kategorie',
+    'title': 'Název',
+    'clients': 'Klienti',
+    'activities': 'Aktivity',
+    'city': 'Město',
+    'street': 'Ulice',
+    'ZIP': 'PSČ'
         }
     },
     
@@ -120,7 +131,7 @@ const CONFIG = {
         DIAGNOSTICS_KEY: 'diagnostics_completed'
     },
     
-    // Validace
+     // Validace
     VALIDATION: {
         API_KEY_PATTERNS: {
             OPENAI: /^sk-[a-zA-Z0-9]{48,}$/,
