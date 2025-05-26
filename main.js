@@ -1,14 +1,10 @@
-// Hlavní aplikační logika - FINÁLNÍ VERZE
+// Hlavní aplikační logika - FINÁLNÍ OPRAVENÁ VERZE
 
 // Globální proměnné
 let APP_CONFIG = {};
 let tablesData = {};
 let messages = [];
-let embeddingsReady = false;
 let queryProcessor = null;
-
-// BLOKOVÁNÍ STARÉHO SYSTÉMU
-window.HYBRID_SYSTEM_ENABLED = true;
 
 // Načtení konfigurace
 function loadConfig() {
@@ -21,25 +17,6 @@ function loadConfig() {
         hasTabidoo: !!APP_CONFIG.TABIDOO_API_TOKEN,
         hasAppId: !!APP_CONFIG.TABIDOO_APP_ID
     });
-}
-
-// Validace API klíčů
-function validateApiKeys(openaiKey, tabidooToken) {
-    const errors = [];
-    
-    if (!openaiKey) {
-        errors.push('OpenAI API klíč je povinný');
-    } else if (!CONFIG.VALIDATION.API_KEY_PATTERNS.OPENAI.test(openaiKey)) {
-        errors.push('OpenAI API klíč má neplatný formát');
-    }
-    
-    if (!tabidooToken) {
-        errors.push('Tabidoo API token je povinný');
-    } else if (!CONFIG.VALIDATION.API_KEY_PATTERNS.TABIDOO.test(tabidooToken)) {
-        errors.push('Tabidoo token má neplatný formát');
-    }
-    
-    return errors;
 }
 
 // Uložení nastavení
@@ -68,7 +45,7 @@ function saveSettings() {
     alert('Nastavení bezpečně uloženo!');
     toggleSettings();
     
-    if (Object.keys(tablesData).length === 0 && APP_CONFIG.OPENAI_API_KEY && APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID) {
+    if (Object.keys(tablesData).length === 0 && APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID) {
         location.reload();
     }
 }
@@ -150,15 +127,11 @@ function importConfig() {
 
 // Odeslání zprávy s hybridním přístupem
 async function sendMessage() {
-    console.log('🚀 Send message clicked - HYBRID VERSION');
-    
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
     const messageText = chatInput.value.trim();
     
-    if (!messageText) {
-        return;
-    }
+    if (!messageText) return;
     
     if (!APP_CONFIG.TABIDOO_API_TOKEN) {
         alert('Nejprve nastavte Tabidoo API token!');
@@ -178,32 +151,13 @@ async function sendMessage() {
     try {
         // Použít query processor
         const result = await queryProcessor.processQuery(messageText);
-        console.log('📤 Query result:', result);
         
         // Zobrazit odpověď
         addMessage('assistant', result.response);
         
-        // Debug info do konzole
-        console.log('🔍 Query type:', result.type);
-        if (result.count !== undefined) {
-            console.log('📊 Count:', result.count);
-        }
-        if (result.records) {
-            console.log('📋 Records found:', result.records.length);
-        }
-        
     } catch (error) {
         console.error('❌ Error processing query:', error);
-        
-        // Fallback na starý způsob
-        try {
-            console.log('🔄 Trying fallback...');
-            const fallbackResponse = await smartCallOpenAI(messageText);
-            addMessage('assistant', fallbackResponse);
-        } catch (fallbackError) {
-            console.error('❌ Fallback also failed:', fallbackError);
-            addMessage('error', 'Omlouvám se, nastala chyba při zpracování dotazu. Zkuste to prosím znovu.');
-        }
+        addMessage('error', 'Omlouvám se, nastala chyba při zpracování dotazu. Zkuste to prosím znovu.');
     } finally {
         // Obnovit UI
         chatInput.disabled = false;
@@ -215,34 +169,21 @@ async function sendMessage() {
 
 // Inicializace query processoru
 function initializeQueryProcessor() {
-    console.log('🧠 Initializing Query Processor...');
-    
     if (!queryProcessor && Object.keys(tablesData).length > 0) {
         queryProcessor = new QueryProcessor(tablesData);
         console.log('✅ Query Processor initialized');
-        
-        // Zobrazit debug info
-        const stats = queryProcessor.getEntityStats();
-        console.log('📊 Data statistics:', stats);
-        
         return true;
     }
-    
     return false;
 }
 
-// Spuštění aplikace - POUZE HYBRIDNÍ VERZE
+// Spuštění aplikace
 window.onload = function() {
-    if (!window.HYBRID_SYSTEM_ENABLED) {
-        console.log('🚫 Hybrid system disabled, skipping...');
-        return;
-    }
-    
     console.log('🌟 Window loaded, starting HYBRID init...');
     setTimeout(hybridInit, 100);
 };
 
-// HLAVNÍ HYBRIDNÍ INICIALIZACE
+// Hlavní hybridní inicializace
 async function hybridInit() {
     console.log('🚀 Starting hybrid initialization...');
     
@@ -253,21 +194,13 @@ async function hybridInit() {
     }
     
     loadConfig();
-    
     const chatMessages = document.getElementById('chat-messages');
     
-    // Pokud nemáme API klíče
+    // Pokud nemáme API klíče - zobrazit welcome screen
     if (!APP_CONFIG.TABIDOO_API_TOKEN || !APP_CONFIG.TABIDOO_APP_ID) {
         console.log('🔧 No API keys, showing welcome screen...');
-        chatMessages.innerHTML = '';
         showWelcomeScreen();
-        
-        document.getElementById('chat-input').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
+        setupEventListeners();
         return;
     }
     
@@ -275,7 +208,7 @@ async function hybridInit() {
     chatMessages.innerHTML = `<div class="message system-message">🔄 Načítám data a inicializuji hybridní systém...</div>`;
     
     try {
-        // 1. Načíst data
+        // Načíst data
         console.log('📊 Loading Tabidoo data...');
         const dataLoaded = await loadTabidooData();
         
@@ -283,7 +216,7 @@ async function hybridInit() {
             throw new Error('Failed to load Tabidoo data');
         }
         
-        // 2. Inicializovat query processor
+        // Inicializovat query processor
         console.log('🧠 Initializing query processor...');
         const processorReady = initializeQueryProcessor();
         
@@ -291,71 +224,38 @@ async function hybridInit() {
             throw new Error('Failed to initialize query processor');
         }
         
-        // 3. Úspěšná inicializace - POUZE WELCOME SCREEN
-        console.log('✅ Hybrid system ready, showing welcome screen directly...');
-        chatMessages.innerHTML = ''; // Vyčistit loading zprávu
-        
-        // PŘÍMÉ ZOBRAZENÍ WELCOME SCREEN - BEZ addMessage
+        // Úspěšná inicializace - zobrazit welcome screen
+        console.log('✅ Hybrid system ready');
         showWelcomeScreen();
-        
-        // Debug info
-        const stats = queryProcessor.getEntityStats();
-        console.log('📈 System ready with data:', stats);
         
     } catch (error) {
         console.error('❌ Hybrid initialization failed:', error);
         chatMessages.innerHTML = '';
-        addMessage('error', '❌ Chyba při inicializaci hybridního systému. Zkontrolujte nastavení API.');
-        
-        // Povolit starý systém jako fallback
-        HYBRID_SYSTEM_ACTIVE = false;
-        
-        console.log('🔄 Falling back to old system...');
-        setTimeout(() => {
-            if (typeof init !== 'undefined') {
-                init(true);
-            }
-        }, 2000);
+        addMessage('error', '❌ Chyba při inicializaci systému. Zkontrolujte nastavení API.');
     }
     
-    // Přidat event listener pro Enter
-    document.getElementById('chat-input').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
-        }
-    });
+    setupEventListeners();
 }
 
-// Debug funkce pro testování
-window.debugQueryProcessor = function(query) {
-    if (!queryProcessor) {
-        console.log('❌ Query processor not initialized');
-        return;
+// Nastavení event listenerů
+function setupEventListeners() {
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
     }
-    
-    console.log('🔍 Debug query:', query);
-    queryProcessor.processQuery(query).then(result => {
-        console.log('📤 Debug result:', result);
-    });
-};
+}
 
 // Získání statistik systému
 window.getSystemStats = function() {
     if (!queryProcessor) {
-        console.log('❌ Query processor not initialized');
-        return {
-            companies: 0,
-            contacts: 0,
-            activities: 0,
-            deals: 0,
-            total: 0
-        };
+        return { companies: 0, contacts: 0, activities: 0, deals: 0, total: 0 };
     }
-    
-    const stats = queryProcessor.getEntityStats();
-    console.log('📊 System Statistics:', stats);
-    return stats;
+    return queryProcessor.getEntityStats();
 };
 
 // Export pro testování
@@ -363,6 +263,5 @@ window.hybridSystem = {
     queryProcessor: () => queryProcessor,
     tablesData: () => tablesData,
     sendMessage: sendMessage,
-    debugQuery: window.debugQueryProcessor,
     getStats: window.getSystemStats
 };
