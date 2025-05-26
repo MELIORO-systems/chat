@@ -105,7 +105,6 @@ const CONFIG = {
     'city': 'Město',
     'street': 'Ulice',
     'ZIP': 'PSČ'
-        }
     },
     
     // Nastavení vyhledávání
