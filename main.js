@@ -1,4 +1,4 @@
-// Hlavní aplikační logika - DEBUG VERZE
+// Hlavní aplikační logika - FINÁLNÍ VERZE
 
 // Globální proměnné
 let APP_CONFIG = {};
@@ -9,16 +9,6 @@ let queryProcessor = null;
 
 // BLOKOVÁNÍ STARÉHO SYSTÉMU
 window.HYBRID_SYSTEM_ENABLED = true;
-
-// OVERRIDE addMessage pro debugging
-const originalConsoleLog = console.log;
-console.log = function(...args) {
-    if (args[0] && typeof args[0] === 'string' && args[0].includes('🎯 Nový hybridní systém')) {
-        console.error('🚨 NALEZEN ZDROJ PROBLEMATICKÉ ZPRÁVY!');
-        console.trace(); // Ukáže stack trace
-    }
-    originalConsoleLog.apply(console, args);
-};
 
 // Načtení konfigurace
 function loadConfig() {
@@ -301,16 +291,12 @@ async function hybridInit() {
             throw new Error('Failed to initialize query processor');
         }
         
-        // 3. Úspěšná inicializace
-        console.log('✅ Hybrid system ready, showing welcome screen...');
-        chatMessages.innerHTML = '';
-        addMessage('system', '✅ Hybridní systém je připraven!');
+        // 3. Úspěšná inicializace - POUZE WELCOME SCREEN
+        console.log('✅ Hybrid system ready, showing welcome screen directly...');
+        chatMessages.innerHTML = ''; // Vyčistit loading zprávu
         
-        // POUZE showWelcomeScreen - ŽÁDNÉ JINÉ ZPRÁVY
-        setTimeout(() => {
-            console.log('🎭 Calling showWelcomeScreen()...');
-            showWelcomeScreen();
-        }, 500);
+        // PŘÍMÉ ZOBRAZENÍ WELCOME SCREEN - BEZ addMessage
+        showWelcomeScreen();
         
         // Debug info
         const stats = queryProcessor.getEntityStats();
