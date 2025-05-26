@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabidoo CRM Asistent | MELIORO Systems</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="wizard-styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
 <body>
@@ -23,6 +24,9 @@
                 </button>
                 <button class="header-btn diagnostic-button" onclick="runDiagnosticsManual()" title="Diagnostika">
                     🔧
+                </button>
+                <button class="header-btn wizard-button" onclick="startSetupWizard()" title="Nastavit novou aplikaci">
+                    🧙‍♂️
                 </button>
             </div>
         </div>
@@ -111,6 +115,7 @@
     <script src="query-processor.js"></script>
     <script src="local-search.js"></script>
     <script src="ai-handler.js"></script>
+    <script src="setup-wizard.js"></script>
     <script src="init.js"></script>
     <script src="main.js"></script>
     
