@@ -132,11 +132,13 @@ class QueryProcessor {
     
     // Detekce dotazů na výpis všech záznamů
     isListAllQuery(query) {
-        const listKeywords = ['vypiš', 'seznam', 'všechny', 'všech', 'jaké', 'které', 'zobraz'];
+        const listKeywords = ['vypiš', 'seznam', 'všechny', 'všech', 'jaké', 'které', 'zobraz', 'jména', 'názvy', 'ukáž'];
         const hasListKeyword = listKeywords.some(keyword => query.includes(keyword));
         
-        // Musí obsahovat list keyword a NESMÍ obsahovat konkrétní název
-        return hasListKeyword && !this.extractEntityName(query);
+        // Musí obsahovat list keyword a NESMÍ obsahovat konkrétní název entity
+        const hasSpecificName = this.extractEntityName(query);
+        
+        return hasListKeyword && !hasSpecificName;
     }
     
     // Detekce dotazů na detaily
@@ -151,20 +153,19 @@ class QueryProcessor {
         return relatedKeywords.some(keyword => query.includes(keyword));
     }
     
-    // Extrakce typu entity (firma, kontakt, atd.)
+    // Extrakce typu entity (firma, kontakt, atd.) - OPRAVENÁ VERZE
     extractEntity(query) {
-        // Všechny tvary slova "firma"
-        if (query.includes('firm') || query.includes('společnost')) return 'company';
+        // Všechny možné tvary slova "firma" a související termíny
+        const companyKeywords = ['firm', 'firem', 'firmy', 'firmu', 'firmě', 'firmou', 'společnost', 'společnosti', 'společností', 'podnik', 'organizac'];
+        const contactKeywords = ['kontakt', 'kontakty', 'kontaktů', 'kontaktem', 'osob', 'osoby', 'lidí', 'lidi', 'člověk'];
+        const activityKeywords = ['aktiv', 'aktivit', 'aktivy', 'úkol', 'úkolů', 'událost', 'události', 'úloha'];
+        const dealKeywords = ['obchod', 'obchodů', 'obchody', 'deal', 'dealy', 'případ', 'případy', 'případů', 'prodej', 'prodeje', 'nabíd', 'nabídky'];
         
-        // Všechny tvary slova "kontakt"
-        if (query.includes('kontakt') || query.includes('osob') || query.includes('lidí')) return 'contact';
-        
-        // Všechny tvary slova "aktivita"
-        if (query.includes('aktiv') || query.includes('úkol') || query.includes('událost')) return 'activity';
-        
-        // Všechny tvary obchodních případů
-        if (query.includes('obchod') || query.includes('deal') || query.includes('případ') || 
-            query.includes('prodej') || query.includes('nabíd')) return 'deal';
+        // Kontrola všech klíčových slov
+        if (companyKeywords.some(keyword => query.includes(keyword))) return 'company';
+        if (contactKeywords.some(keyword => query.includes(keyword))) return 'contact';
+        if (activityKeywords.some(keyword => query.includes(keyword))) return 'activity';
+        if (dealKeywords.some(keyword => query.includes(keyword))) return 'deal';
             
         return null;
     }
