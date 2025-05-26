@@ -151,46 +151,20 @@ class QueryProcessor {
         return relatedKeywords.some(keyword => query.includes(keyword));
     }
     
-    // Extrakce typu entity (firma, kontakt, atd.) - DEBUGGING VERZE
+    // Extrakce typu entity (firma, kontakt, atd.) - FINÁLNÍ VERZE
     extractEntity(query) {
-        console.log('🔍 extractEntity called with:', query);
-        
         // Všechny možné tvary slova "firma" a související termíny
         const companyKeywords = ['firm', 'firem', 'firmy', 'firmu', 'firmě', 'firmou', 'společnost', 'společnosti', 'společností', 'společnostmi', 'podnik', 'organizac'];
         const contactKeywords = ['kontakt', 'kontakty', 'kontaktů', 'kontaktem', 'osob', 'osoby', 'lidí', 'lidi', 'člověk'];
         const activityKeywords = ['aktiv', 'aktivit', 'aktivy', 'úkol', 'úkolů', 'událost', 'události', 'úloha'];
         const dealKeywords = ['obchod', 'obchodů', 'obchody', 'deal', 'dealy', 'případ', 'případy', 'případů', 'prodej', 'prodeje', 'nabíd', 'nabídky'];
         
-        // Kontrola všech klíčových slov s debugováním
-        for (const keyword of companyKeywords) {
-            if (query.includes(keyword)) {
-                console.log('✅ Found company keyword:', keyword);
-                return 'company';
-            }
-        }
-        
-        for (const keyword of contactKeywords) {
-            if (query.includes(keyword)) {
-                console.log('✅ Found contact keyword:', keyword);
-                return 'contact';
-            }
-        }
-        
-        for (const keyword of activityKeywords) {
-            if (query.includes(keyword)) {
-                console.log('✅ Found activity keyword:', keyword);
-                return 'activity';
-            }
-        }
-        
-        for (const keyword of dealKeywords) {
-            if (query.includes(keyword)) {
-                console.log('✅ Found deal keyword:', keyword);
-                return 'deal';
-            }
-        }
-        
-        console.log('❌ No entity found in query:', query);
+        // Kontrola všech klíčových slov
+        if (companyKeywords.some(keyword => query.includes(keyword))) return 'company';
+        if (contactKeywords.some(keyword => query.includes(keyword))) return 'contact';
+        if (activityKeywords.some(keyword => query.includes(keyword))) return 'activity';
+        if (dealKeywords.some(keyword => query.includes(keyword))) return 'deal';
+            
         return null;
     }
     
@@ -234,10 +208,17 @@ class QueryProcessor {
         let count = 0;
         let entityLabel = 'záznamů';
         
+        // Rozpoznat typ z původního dotazu pro správné skloňování
+        const originalLower = analysis.originalQuery.toLowerCase();
+        
         switch (entity) {
             case 'company':
                 count = stats.companies;
-                entityLabel = 'firem';
+                if (originalLower.includes('společnost')) {
+                    entityLabel = 'společností';
+                } else {
+                    entityLabel = 'firem';
+                }
                 break;
             case 'contact':
                 count = stats.contacts;
