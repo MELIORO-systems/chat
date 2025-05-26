@@ -1,5 +1,8 @@
 // Integrace Setup Wizard s existujícím systémem
 
+// Zabránit konfliktu se starým init systémem
+let HYBRID_SYSTEM_ACTIVE = true;
+
 // Rozšíření CONFIG objektu o wizard konfiguraci
 function loadWizardConfig() {
     const wizardConfig = localStorage.getItem('tabidoo_wizard_config');
@@ -94,6 +97,21 @@ function autoStartWizardIfNeeded() {
     return false;
 }
 
+// BLOKOVÁNÍ STARÉHO SYSTÉMU
+// Přepsat původní init funkci
+if (typeof window.init !== 'undefined') {
+    const originalInit = window.init;
+    window.init = function(skipDiagnostics = false) {
+        if (HYBRID_SYSTEM_ACTIVE) {
+            console.log('🚫 Blocking old init - hybrid system is active');
+            return;
+        }
+        
+        console.log('🔄 Running old init as fallback');
+        return originalInit(skipDiagnostics);
+    };
+}
+
 // Hook do inicializace systému
 const originalHybridInit = window.hybridInit;
 if (originalHybridInit) {
@@ -122,6 +140,138 @@ if (originalHybridInit) {
             }
         }
     };
+} else {
+    // Pokud není originalHybridInit, vytvořit vlastní
+    window.hybridInit = async function() {
+        console.log('🚀 Starting new hybrid init...');
+        
+        if (typeof security === 'undefined') {
+            console.error('❌ Security manager not loaded!');
+            setTimeout(() => window.hybridInit(), 100);
+            return;
+        }
+        
+        loadConfig();
+        
+        const chatMessages = document.getElementById('chat-messages');
+        
+        // Pokud nemáme API klíče
+        if (!APP_CONFIG.TABIDOO_API_TOKEN || !APP_CONFIG.TABIDOO_APP_ID) {
+            chatMessages.innerHTML = '';
+            showWelcomeScreen(); // Použít nový welcome screen
+            
+            document.getElementById('chat-input').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            return;
+        }
+        
+        // Zkusit automaticky spustit wizard
+        const wizardStarted = autoStartWizardIfNeeded();
+        
+        if (wizardStarted) {
+            return;
+        }
+        
+        // Zobrazit loading zprávu
+        chatMessages.innerHTML = `<div class="message system-message">🔄 Načítám data a inicializuji hybridní systém...</div>`;
+        
+        try {
+            // 1. Načíst data
+            console.log('📊 Loading Tabidoo data...');
+            const dataLoaded = await loadTabidooData();
+            
+            if (!dataLoaded) {
+                throw new Error('Failed to load Tabidoo data');
+            }
+            
+            // 2. Inicializovat query processor
+            console.log('🧠 Initializing query processor...');
+            const processorReady = initializeQueryProcessor();
+            
+            if (!processorReady) {
+                throw new Error('Failed to initialize query processor');
+            }
+            
+            // 3. Úspěšná inicializace
+            chatMessages.innerHTML = '';
+            addMessage('system', '✅ Hybridní systém je připraven!');
+            
+            // Zobrazit welcome screen místo dlouhého textu
+            setTimeout(() => {
+                showWelcomeScreen();
+            }, 500);
+            
+            // Debug info
+            const stats = queryProcessor.getEntityStats();
+            console.log('📈 System ready with data:', stats);
+            
+        } catch (error) {
+            console.error('❌ Hybrid initialization failed:', error);
+            chatMessages.innerHTML = '';
+            addMessage('error', '❌ Chyba při inicializaci hybridního systému. Zkontrolujte nastavení API.');
+            
+            // Povolit starý systém jako fallback
+            HYBRID_SYSTEM_ACTIVE = false;
+            
+            console.log('🔄 Falling back to old system...');
+            setTimeout(() => {
+                if (typeof init !== 'undefined') {
+                    init(true); // Spustit starý systém
+                }
+            }, 2000);
+        }
+        
+        // Přidat event listener pro Enter
+        document.getElementById('chat-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    };
+}
+
+// Aktualizace hlavičky s informací o konfiguraci
+function updateHeaderWithWizardInfo() {
+    const wizardConfig = localStorage.getItem('tabidoo_wizard_config');
+    if (wizardConfig) {
+        try {
+            const config = JSON.parse(wizardConfig);
+            const headerSubtitle = document.querySelector('.header-subtitle');
+            if (headerSubtitle) {
+                headerSubtitle.textContent = `${config.appId} | Powered by MELIORO Systems`;
+            }
+        } catch (error) {
+            console.error('Error updating header:', error);
+        }
+    }
+}
+
+// Spustit při načtení stránky
+document.addEventListener('DOMContentLoaded', function() {
+    updateHeaderWithWizardInfo();
+});
+
+// Přidat tlačítko pro reset wizardu do nastavení
+function addWizardResetButton() {
+    const settingsFooter = document.querySelector('.settings-footer');
+    if (settingsFooter) {
+        const wizardButton = document.createElement('button');
+        wizardButton.className = 'link-btn';
+        wizardButton.textContent = '🧙‍♂️ Překonfigurovat aplikaci';
+        wizardButton.onclick = function() {
+            if (confirm('Opravdu chcete znovu nastavit aplikaci pomocí průvodce?\n\nToto přemaže současnou konfiguraci.')) {
+                localStorage.removeItem('tabidoo_wizard_completed');
+                localStorage.removeItem('tabidoo_wizard_config');
+                startSetupWizard();
+            }
+        };
+        settingsFooter.appendChild(wizardButton);
+    }
 }
 
 // Aktualizace hlavičky s informací o konfiguraci
