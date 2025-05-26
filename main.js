@@ -1,4 +1,4 @@
-// Hlavní aplikační logika - VYČIŠTĚNÁ VERZE
+// Hlavní aplikační logika - DEBUG VERZE
 
 // Globální proměnné
 let APP_CONFIG = {};
@@ -9,6 +9,16 @@ let queryProcessor = null;
 
 // BLOKOVÁNÍ STARÉHO SYSTÉMU
 window.HYBRID_SYSTEM_ENABLED = true;
+
+// OVERRIDE addMessage pro debugging
+const originalConsoleLog = console.log;
+console.log = function(...args) {
+    if (args[0] && typeof args[0] === 'string' && args[0].includes('🎯 Nový hybridní systém')) {
+        console.error('🚨 NALEZEN ZDROJ PROBLEMATICKÉ ZPRÁVY!');
+        console.trace(); // Ukáže stack trace
+    }
+    originalConsoleLog.apply(console, args);
+};
 
 // Načtení konfigurace
 function loadConfig() {
@@ -258,8 +268,9 @@ async function hybridInit() {
     
     // Pokud nemáme API klíče
     if (!APP_CONFIG.TABIDOO_API_TOKEN || !APP_CONFIG.TABIDOO_APP_ID) {
+        console.log('🔧 No API keys, showing welcome screen...');
         chatMessages.innerHTML = '';
-        showWelcomeScreen(); // Použít správný welcome screen
+        showWelcomeScreen();
         
         document.getElementById('chat-input').addEventListener('keydown', function(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -290,12 +301,14 @@ async function hybridInit() {
             throw new Error('Failed to initialize query processor');
         }
         
-        // 3. Úspěšná inicializace - ZOBRAZIT WELCOME SCREEN
+        // 3. Úspěšná inicializace
+        console.log('✅ Hybrid system ready, showing welcome screen...');
         chatMessages.innerHTML = '';
         addMessage('system', '✅ Hybridní systém je připraven!');
         
-        // POUŽÍT WELCOME SCREEN MÍSTO DUPLICITNÍ ZPRÁVY
+        // POUZE showWelcomeScreen - ŽÁDNÉ JINÉ ZPRÁVY
         setTimeout(() => {
+            console.log('🎭 Calling showWelcomeScreen()...');
             showWelcomeScreen();
         }, 500);
         
@@ -314,7 +327,7 @@ async function hybridInit() {
         console.log('🔄 Falling back to old system...');
         setTimeout(() => {
             if (typeof init !== 'undefined') {
-                init(true); // Spustit starý systém
+                init(true);
             }
         }, 2000);
     }
