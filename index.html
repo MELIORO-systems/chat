@@ -3,22 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabidoo ChatGPT Asistent</title>
+    <title>Tabidoo CRM Asistent | MELIORO Systems</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h1>Tabidoo ChatGPT Asistent</h1>
+            <div class="header-content">
+                <h1>Tabidoo CRM Asistent</h1>
+                <div class="header-subtitle">Powered by MELIORO Systems</div>
+            </div>
             <div class="header-buttons">
-                <button class="refresh-button" onclick="refreshData()" title="Obnovit data z Tabidoo">🔄</button>
-                <button class="settings-button" onclick="toggleSettings()" title="Nastavení">⚙️</button>
-                <button class="diagnostic-button" onclick="runDiagnosticsManual()" title="Diagnostika">🔧</button>
+                <button class="header-btn refresh-button" onclick="refreshData()" title="Obnovit data z Tabidoo">
+                    🔄
+                </button>
+                <button class="header-btn settings-button" onclick="toggleSettings()" title="Nastavení">
+                    ⚙️
+                </button>
+                <button class="header-btn diagnostic-button" onclick="runDiagnosticsManual()" title="Diagnostika">
+                    🔧
+                </button>
             </div>
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
-            <h3>🔐 Zabezpečené nastavení API</h3>
+            <div class="settings-title">
+                <span>🔐</span>
+                <span>Zabezpečené nastavení API</span>
+            </div>
             
             <div class="settings-section">
                 <label for="openai-key">OpenAI API klíč:</label>
@@ -68,14 +81,22 @@
         </div>
         
         <div id="chat-messages" class="chat-messages">
-            <div class="message system-message">
-                Načítám systém...
+            <div class="welcome-container">
+                <div class="welcome-title">Vítejte v Tabidoo CRM Asistentovi</div>
+                <div class="welcome-subtitle">Inteligentní asistent pro práci s vašimi CRM daty</div>
+                
+                <div class="example-queries" id="example-queries">
+                    <!-- Příklady budou načteny dynamicky -->
+                </div>
             </div>
         </div>
         
         <div class="chat-input-area">
-            <textarea id="chat-input" class="chat-input" placeholder="Napište vaši zprávu..." rows="2"></textarea>
-            <button id="send-button" class="send-button" onclick="sendMessage()">Odeslat</button>
+            <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
+            <button id="send-button" class="send-button" onclick="sendMessage()">
+                <span>Odeslat</span>
+                <span>↗️</span>
+            </button>
         </div>
     </div>
 
@@ -87,10 +108,10 @@
     <script src="data-loader.js"></script>
     <script src="analytics.js"></script>
     <script src="search.js"></script>
-    <script src="ai-handler.js"></script>
-    <script src="init.js"></script>
     <script src="query-processor.js"></script>
     <script src="local-search.js"></script>
+    <script src="ai-handler.js"></script>
+    <script src="init.js"></script>
     <script src="main.js"></script>
     
     <script>
@@ -112,6 +133,83 @@
         function runDiagnosticsManual() {
             localStorage.removeItem(CONFIG.CACHE.DIAGNOSTICS_KEY);
             location.reload();
+        }
+        
+        // Klikací příklady dotazů
+        function clickExampleQuery(query) {
+            const chatInput = document.getElementById('chat-input');
+            chatInput.value = query;
+            chatInput.focus();
+            
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            chatInput.style.height = chatInput.scrollHeight + 'px';
+        }
+        
+        // Načtení příkladů dotazů
+        function loadExampleQueries() {
+            const exampleQueriesContainer = document.getElementById('example-queries');
+            if (!exampleQueriesContainer) return;
+            
+            const examples = CONFIG.EXAMPLE_QUERIES || [
+                { icon: '📊', text: 'Kolik firem je v systému?' },
+                { icon: '📋', text: 'Vypiš všechny firmy' },
+                { icon: '🔍', text: 'Najdi firmu Alza' },
+                { icon: '👥', text: 'Kolik kontaktů máme?' },
+                { icon: '💼', text: 'Vypiš obchodní případy' },
+                { icon: '📈', text: 'Kolik aktivit proběhlo?' }
+            ];
+            
+            exampleQueriesContainer.innerHTML = examples.map(example => `
+                <div class="example-query" onclick="clickExampleQuery('${example.text}')">
+                    <span class="example-query-icon">${example.icon}</span>
+                    ${example.text}
+                </div>
+            `).join('');
+        }
+        
+        // Auto-resize textarea
+        function setupAutoResize() {
+            const chatInput = document.getElementById('chat-input');
+            if (!chatInput) return;
+            
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+            
+            // Enter pro odeslání, Shift+Enter pro nový řádek
+            chatInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+        
+        // Inicializace UI enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExampleQueries();
+            setupAutoResize();
+        });
+        
+        // Skrytí welcome screen při první zprávě
+        function hideWelcomeScreen() {
+            const welcomeContainer = document.querySelector('.welcome-container');
+            if (welcomeContainer) {
+                welcomeContainer.style.display = 'none';
+            }
+        }
+        
+        // Override addMessage pro skrytí welcome screen
+        const originalAddMessage = window.addMessage;
+        if (originalAddMessage) {
+            window.addMessage = function(role, content) {
+                if (role === 'user' || role === 'assistant') {
+                    hideWelcomeScreen();
+                }
+                return originalAddMessage(role, content);
+            };
         }
     </script>
 </body>
