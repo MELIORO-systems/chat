@@ -151,7 +151,7 @@ class QueryProcessor {
         return relatedKeywords.some(keyword => query.includes(keyword));
     }
     
-    // Extrakce typu entity (firma, kontakt, atd.) - FINÁLNÍ VERZE
+    // Extrakce typu entity (firma, kontakt, atd.)
     extractEntity(query) {
         // Všechny možné tvary slova "firma" a související termíny
         const companyKeywords = ['firm', 'firem', 'firmy', 'firmu', 'firmě', 'firmou', 'společnost', 'společnosti', 'společností', 'společnostmi', 'podnik', 'organizac'];
