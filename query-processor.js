@@ -153,18 +153,29 @@ class QueryProcessor {
     
     // Extrakce typu entity (firma, kontakt, atd.)
     extractEntity(query) {
-        if (query.includes('firm')) return 'company';
-        if (query.includes('kontakt')) return 'contact';
-        if (query.includes('aktiv')) return 'activity';
-        if (query.includes('obchod') || query.includes('deal') || query.includes('případ')) return 'deal';
+        // Všechny tvary slova "firma"
+        if (query.includes('firm') || query.includes('společnost')) return 'company';
+        
+        // Všechny tvary slova "kontakt"
+        if (query.includes('kontakt') || query.includes('osob') || query.includes('lidí')) return 'contact';
+        
+        // Všechny tvary slova "aktivita"
+        if (query.includes('aktiv') || query.includes('úkol') || query.includes('událost')) return 'activity';
+        
+        // Všechny tvary obchodních případů
+        if (query.includes('obchod') || query.includes('deal') || query.includes('případ') || 
+            query.includes('prodej') || query.includes('nabíd')) return 'deal';
+            
         return null;
     }
     
     // Extrakce názvu konkrétní entity
     extractEntityName(query) {
-        // Vzory pro názvy firem
+        // Vzory pro názvy firem - rozšířené
         const companyPatterns = [
             /(?:firm[aeyu]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+(?:\s+[a-z]+\.?)*)/i,
+            /(?:firem\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i,
+            /(?:firmy\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i,
             /(?:o\s+firm[aeyu]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i,
             /(?:společnost[i]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i
         ];
@@ -172,6 +183,8 @@ class QueryProcessor {
         // Vzory pro jména osob
         const personPatterns = [
             /(?:kontakt[uae]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s]+)/i,
+            /(?:kontaktů\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s]+)/i,
+            /(?:kontakty\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s]+)/i,
             /(?:o\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+(?:\s+[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+)?)/i
         ];
         
