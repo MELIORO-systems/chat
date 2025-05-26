@@ -87,7 +87,6 @@ const CONFIG = {
         IMPORTANT_FIELDS: ['name', 'nazev', 'Name', 'jmeno', 'prijmeni', 'email', 'telefon', 'firma', 'company'],
         HIDDEN_FIELDS: ['_id', '_created', '_modified', '_creator'],
         FIELD_LABELS: {
-FIELD_LABELS: {
     'name': 'Jméno',
     'nazev': 'Název',
     'jmeno': 'Jméno',
