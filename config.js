@@ -138,3 +138,10 @@ const CONFIG = {
         }
     }
 };
+
+// Export CONFIG pro použití v jiných souborech
+if (typeof window !== 'undefined') {
+    window.CONFIG = CONFIG;
+} else if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CONFIG;
+}
