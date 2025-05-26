@@ -202,10 +202,22 @@
             }
         }
         
-        // Override addMessage pro skrytí welcome screen
+        // DEBUG: Override addMessage s blokem problematické zprávy
         const originalAddMessage = window.addMessage;
         if (originalAddMessage) {
             window.addMessage = function(role, content) {
+                // DEBUG: Zachytit a ZABLOKOVAT problematickou zprávu
+                if (content && content.includes('🎯 Nový hybridní systém')) {
+                    console.error('🚨 NALEZENA A ZABLOKOVÁNA PROBLEMATICKÁ ZPRÁVA!');
+                    console.error('Role:', role);
+                    console.error('Content preview:', content.substring(0, 100));
+                    console.trace('Stack trace:');
+                    
+                    // BLOKOVAT tuto zprávu - NEPOSÍLAT DÁLE
+                    console.log('🛑 Message blocked - not adding to chat');
+                    return;
+                }
+                
                 if (role === 'user' || role === 'assistant') {
                     hideWelcomeScreen();
                 }
