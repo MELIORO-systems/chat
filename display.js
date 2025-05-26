@@ -1,13 +1,29 @@
-// Funkce pro zobrazování dat
+// Funkce pro zobrazování dat - MODERNÍ VERZE
+
+let welcomeScreenHidden = false;
 
 // Přidání zprávy do chatu
 function addMessage(role, content) {
     console.log('Adding message:', role, content.substring(0, 100));
     
+    // Skrýt welcome screen při první user/assistant zprávě
+    if ((role === 'user' || role === 'assistant') && !welcomeScreenHidden) {
+        hideWelcomeScreen();
+    }
+    
     const chatMessages = document.getElementById('chat-messages');
     const messageElement = document.createElement('div');
     messageElement.className = 'message ' + role + '-message';
-    messageElement.textContent = content;
+    
+    // Speciální zpracování pro různé typy zpráv
+    if (role === 'assistant' && content.includes('**')) {
+        // Jednoduchý markdown pro tučný text
+        content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        messageElement.innerHTML = content;
+    } else {
+        messageElement.textContent = content;
+    }
+    
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
@@ -16,8 +32,75 @@ function addMessage(role, content) {
     }
 }
 
+// Skrytí welcome screen
+function hideWelcomeScreen() {
+    const welcomeContainer = document.querySelector('.welcome-container');
+    if (welcomeContainer && !welcomeScreenHidden) {
+        welcomeContainer.style.display = 'none';
+        welcomeScreenHidden = true;
+    }
+}
+
+// Zobrazení welcome screen
+function showWelcomeScreen() {
+    const chatMessages = document.getElementById('chat-messages');
+    welcomeScreenHidden = false;
+    
+    chatMessages.innerHTML = `
+        <div class="welcome-container">
+            <div class="welcome-title">Vítejte v Tabidoo CRM Asistentovi</div>
+            <div class="welcome-subtitle">Inteligentní asistent pro práci s vašimi CRM daty</div>
+            
+            <div class="example-queries" id="example-queries">
+                <!-- Příklady budou načteny dynamicky -->
+            </div>
+        </div>
+    `;
+    
+    // Znovu načíst příklady dotazů
+    loadExampleQueries();
+}
+
+// Načtení příkladů dotazů
+function loadExampleQueries() {
+    const exampleQueriesContainer = document.getElementById('example-queries');
+    if (!exampleQueriesContainer) return;
+    
+    const examples = CONFIG.EXAMPLE_QUERIES || [
+        { icon: '📊', text: 'Kolik firem je v systému?' },
+        { icon: '📋', text: 'Vypiš všechny firmy' },
+        { icon: '🔍', text: 'Najdi firmu Alza' },
+        { icon: '👥', text: 'Kolik kontaktů máme?' },
+        { icon: '💼', text: 'Vypiš obchodní případy' },
+        { icon: '📈', text: 'Kolik aktivit proběhlo?' }
+    ];
+    
+    exampleQueriesContainer.innerHTML = examples.map(example => `
+        <div class="example-query" onclick="clickExampleQuery('${example.text.replace(/'/g, "\\'")}')">
+            <span class="example-query-icon">${example.icon}</span>
+            ${example.text}
+        </div>
+    `).join('');
+}
+
+// Kliknutí na příklad dotazu
+function clickExampleQuery(query) {
+    const chatInput = document.getElementById('chat-input');
+    chatInput.value = query;
+    chatInput.focus();
+    
+    // Auto-resize textarea
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+    
+    // Volitelně: automaticky odeslat dotaz
+    // sendMessage();
+}
+
 // Přidání diagnostické zprávy
 function addDiagnosticMessage(text, status = 'info') {
+    hideWelcomeScreen();
+    
     const diagnosticArea = document.getElementById('chat-messages');
     const messageElement = document.createElement('div');
     messageElement.className = 'message diagnostic-message';
@@ -29,6 +112,7 @@ function addDiagnosticMessage(text, status = 'info') {
     
     messageElement.innerHTML = `${icon} ${text}`;
     diagnosticArea.appendChild(messageElement);
+    diagnosticArea.scrollTop = diagnosticArea.scrollHeight;
 }
 
 // Pomocná funkce pro získání zobrazitelné hodnoty z pole
@@ -96,7 +180,7 @@ function getDisplayValue(value, fieldName) {
     return String(value);
 }
 
-// Formátovat záznamy pro zobrazení - UPRAVENÁ VERZE
+// Formátovat záznamy pro zobrazení - MODERNÍ VERZE
 function formatRecordsForDisplay(records, tableName, maxRecords = CONFIG.DISPLAY.MAX_RECORDS_TO_SHOW) {
     if (!records || records.length === 0) {
         return `Nenašel jsem žádné záznamy v tabulce ${tableName}.`;
@@ -186,3 +270,27 @@ function formatRecordsForDisplay(records, tableName, maxRecords = CONFIG.DISPLAY
     
     return output;
 }
+
+// Setup auto-resize pro textarea
+function setupAutoResize() {
+    const chatInput = document.getElementById('chat-input');
+    if (!chatInput) return;
+    
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    // Enter pro odeslání, Shift+Enter pro nový řádek
+    chatInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+}
+
+// Inicializace při načtení stránky
+document.addEventListener('DOMContentLoaded', function() {
+    setupAutoResize();
+});
