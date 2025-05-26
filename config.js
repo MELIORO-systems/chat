@@ -40,7 +40,7 @@ const CONFIG = {
     // Prompty pro GPT
     PROMPTS: {
         SYSTEM: {
-            DEFAULT: "Jsi asistent pro Tabidoo CRM. Máš přístup ke kompletním datům z databáze. Odpovídej na dotazy přesně podle poskytnutých dat. Když se tě někdo zeptá na seznam nebo konkrétní data, vypiš je. Odpovídej česky.",
+            DEFAULT: "Jsi asistent pro Tabidoo CRM. Máš přístup ke kompletním datům z databáze. Odpovídej na dotazy přesně podle poskytnutých dat. Když se tě někdo zeptá na seznam nebo konkrétní data, vypiš je. V systému jsou firmy a jiné události uložené pod ID, s těmy samosřejmě pracuj, ale uživatelům odpovídej v konkrétních názvech firem a pod. Odpovídej česky.",
             WITH_DATA: "Jsi asistent pro Tabidoo CRM. Odpovídej na základě poskytnutých dat. Odpovídej stručně a věcně česky.",
             ANALYTICS: "Jsi asistent pro Tabidoo CRM. Odpovídej na základě poskytnutých statistik. Odpovídej stručně česky.",
             MINIMAL: "Jsi asistent pro Tabidoo CRM. Odpovídej stručně česky."
