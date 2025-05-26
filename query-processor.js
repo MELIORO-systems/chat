@@ -1,4 +1,4 @@
-// Hlavní procesor dotazů - "mozek" systému
+// Hlavní procesor dotazů - "mozek" systému - OPRAVENÁ VERZE
 
 class QueryProcessor {
     constructor(tablesData) {
@@ -73,7 +73,6 @@ class QueryProcessor {
         
         // VŽDY extrahovat entitu na začátku
         analysis.entity = this.extractEntity(lowerQuery);
-        analysis.entityName = this.extractEntityName(query);
         
         // Systémové dotazy
         if (this.isSystemQuery(lowerQuery)) {
@@ -87,13 +86,15 @@ class QueryProcessor {
             return analysis;
         }
         
-        // Výpis všech záznamů
+        // Výpis všech záznamů - VYLEPŠENÁ DETEKCE
         if (this.isListAllQuery(lowerQuery)) {
             analysis.type = 'list_all';
             return analysis;
         }
         
-        // Hledání konkrétní entity
+        // TEPRVE POTOM extrahovat konkrétní název entity
+        analysis.entityName = this.extractEntityName(query);
+        
         if (analysis.entityName) {
             // Detaily o konkrétní entitě
             if (this.isDetailsQuery(lowerQuery)) {
@@ -128,15 +129,55 @@ class QueryProcessor {
         return countKeywords.some(keyword => query.includes(keyword));
     }
     
-    // Detekce dotazů na výpis všech záznamů
+    // VYLEPŠENÁ detekce dotazů na výpis všech záznamů
     isListAllQuery(query) {
-        const listKeywords = ['vypiš', 'seznam', 'všechny', 'všech', 'jaké', 'které', 'zobraz', 'jména', 'názvy', 'ukáž'];
+        const listKeywords = [
+            'vypiš', 'seznam', 'všechny', 'všech', 'jaké', 'které', 'zobraz', 'jména', 'názvy', 'ukáž',
+            'konkrétně jsou', 'to jsou', 'máme', 'existují', 'jsou to'
+        ];
+        
         const hasListKeyword = listKeywords.some(keyword => query.includes(keyword));
         
-        // Musí obsahovat list keyword a NESMÍ obsahovat konkrétní název entity
-        const hasSpecificName = this.extractEntityName(query);
+        // Konkrétní vzory pro "jaké X to jsou"
+        const listPatterns = [
+            /jaké\s+\w+\s+(to\s+)?(konkrétně\s+)?jsou/i,
+            /které\s+\w+\s+(to\s+)?(konkrétně\s+)?jsou/i,
+            /co\s+jsou\s+to\s+za\s+\w+/i
+        ];
         
-        return hasListKeyword && !hasSpecificName;
+        const hasListPattern = listPatterns.some(pattern => pattern.test(query));
+        
+        // Pokud má list keyword nebo pattern, je to list_all
+        if (hasListKeyword || hasListPattern) {
+            // DŮLEŽITÉ: Nesmí obsahovat konkrétní název entity
+            const hasSpecificName = this.hasSpecificEntityName(query);
+            return !hasSpecificName;
+        }
+        
+        return false;
+    }
+    
+    // Kontrola, zda dotaz obsahuje konkrétní název entity
+    hasSpecificEntityName(query) {
+        // Konkrétní vzory pro názvy firem a osob
+        const specificPatterns = [
+            /\b[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+\s+[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+/,  // Jméno Příjmení
+            /\b[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+\s+(s\.r\.o\.|a\.s\.|spol\.|Ltd)/i,  // Firma s.r.o.
+            /\b[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]{3,}/  // Dlouhé vlastní jméno
+        ];
+        
+        // Vyloučit obecné fráze
+        const genericPhrases = [
+            'to konkrétně jsou', 'to jsou', 'které jsou', 'jaké jsou', 'co jsou',
+            'všechny', 'všech', 'máme', 'existují'
+        ];
+        
+        // Pokud obsahuje jen obecné fráze, není to konkrétní název
+        const hasOnlyGeneric = genericPhrases.some(phrase => query.toLowerCase().includes(phrase));
+        if (hasOnlyGeneric) return false;
+        
+        // Kontrola konkrétních vzorů
+        return specificPatterns.some(pattern => pattern.test(query));
     }
     
     // Detekce dotazů na detaily
@@ -168,23 +209,19 @@ class QueryProcessor {
         return null;
     }
     
-    // Extrakce názvu konkrétní entity
+    // ZPŘÍSNĚNÁ extrakce názvu konkrétní entity
     extractEntityName(query) {
-        // Vzory pro názvy firem - rozšířené
+        // Vzory pro názvy firem - ZPŘÍSNĚNÉ
         const companyPatterns = [
-            /(?:firm[aeyu]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+(?:\s+[a-z]+\.?)*)/i,
-            /(?:firem\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i,
-            /(?:firmy\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i,
-            /(?:o\s+firm[aeyu]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i,
-            /(?:společnost[i]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]+)/i
+            /(?:firm[aeyu]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]{2,}(?:\s+[a-z]+\.?)*)/i,
+            /(?:společnost[i]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]{2,})/i,
+            /(?:najdi\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s&.,-]{2,})/i
         ];
         
-        // Vzory pro jména osob
+        // Vzory pro jména osob - ZPŘÍSNĚNÉ
         const personPatterns = [
-            /(?:kontakt[uae]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s]+)/i,
-            /(?:kontaktů\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s]+)/i,
-            /(?:kontakty\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž\s]+)/i,
-            /(?:o\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+(?:\s+[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+)?)/i
+            /(?:kontakt[uae]?\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+\s+[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+)/i,
+            /(?:najdi\s+)([A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+\s+[A-ZÁČĎĚÉÍŇÓŘŠŤÚŮÝŽ][a-záčďěéíňóřšťúůýž]+)/i
         ];
         
         const allPatterns = [...companyPatterns, ...personPatterns];
@@ -192,7 +229,19 @@ class QueryProcessor {
         for (const pattern of allPatterns) {
             const match = query.match(pattern);
             if (match && match[1]) {
-                return match[1].trim();
+                const entityName = match[1].trim();
+                
+                // Vyloučit obecné fráze
+                const genericPhrases = [
+                    'to konkrétně jsou', 'to jsou', 'které jsou', 'jaké jsou', 'co jsou',
+                    'všechny', 'všech', 'máme', 'existují', 'konkrétně jsou'
+                ];
+                
+                if (genericPhrases.some(phrase => entityName.toLowerCase().includes(phrase))) {
+                    continue; // Přeskočit tento match
+                }
+                
+                return entityName;
             }
         }
         
