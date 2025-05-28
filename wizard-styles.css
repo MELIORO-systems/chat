@@ -608,6 +608,10 @@
     justify-content: center;
 }
 
+.wizard-actions.start {
+    justify-content: space-between;
+}
+
 .wizard-btn {
     padding: 0.875rem 1.75rem;
     border-radius: var(--radius);
