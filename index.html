@@ -8,40 +8,48 @@
     <link rel="stylesheet" href="wizard-styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
-<body>
+<body data-theme="claude">
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-content">
                 <h1>Tabidoo CRM Asistent</h1>
-                <div class="header-subtitle">Powered by MELIORO Systems</div>
+                <div class="header-subtitle">Hybridní AI systém je připraven k použití</div>
             </div>
             <div class="header-buttons">
                 <button class="header-btn refresh-button" onclick="refreshData()" title="Obnovit data z Tabidoo">
-                    🔄
+                    Obnovit data
                 </button>
                 <button class="header-btn settings-button" onclick="toggleSettings()" title="Nastavení">
-                    ⚙️
+                    Nastavení
                 </button>
                 <button class="header-btn diagnostic-button" onclick="runDiagnosticsManual()" title="Diagnostika">
-                    🔧
+                    Diagnostika
                 </button>
-                <button class="header-btn wizard-button" onclick="startSetupWizard()" title="Nastavit novou aplikaci">
-                    🧙‍♂️
+                <button class="header-btn help-button" onclick="showSystemHelp()" title="Jak systém funguje">
+                    Jak systém funguje
                 </button>
+                <div class="dropdown">
+                    <button class="header-btn wizard-button" onclick="toggleDropdown()" title="Nastavení nové aplikace">
+                        Nastavení nové aplikace
+                    </button>
+                    <div class="dropdown-content" id="dropdownMenu">
+                        <button class="dropdown-item" onclick="startSetupWizard()">Průvodce nastavením</button>
+                        <button class="dropdown-item" onclick="exportConfig()">Export konfigurace</button>
+                        <button class="dropdown-item" onclick="importConfig()">Import konfigurace</button>
+                        <button class="dropdown-item" onclick="clearAllData()">Vymazat vše</button>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
-            <div class="settings-title">
-                <span>🔐</span>
-                <span>Zabezpečené nastavení API</span>
-            </div>
+            <div class="settings-title">Nastavení API</div>
             
             <div class="settings-section">
                 <label for="openai-key">OpenAI API klíč:</label>
                 <div class="input-group">
                     <input type="password" id="openai-key" placeholder="sk-...">
-                    <button onclick="toggleVisibility('openai-key')" class="toggle-btn">👁️</button>
+                    <button onclick="toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
                 </div>
                 <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
             </div>
@@ -50,7 +58,7 @@
                 <label for="tabidoo-token">Tabidoo API token:</label>
                 <div class="input-group">
                     <input type="password" id="tabidoo-token" placeholder="eyJ...">
-                    <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">👁️</button>
+                    <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
                 </div>
                 <small>Najdete v Tabidoo → Nastavení → API</small>
             </div>
@@ -60,20 +68,30 @@
                 <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
                 <small>Název vaší aplikace v Tabidoo</small>
             </div>
+
+            <div class="settings-section">
+                <label>Barevné schéma:</label>
+                <div class="theme-selector">
+                    <div class="theme-option theme-claude active" onclick="setTheme('claude')" title="Claude (výchozí)"></div>
+                    <div class="theme-option theme-google" onclick="setTheme('google')" title="Google"></div>
+                    <div class="theme-option theme-replit" onclick="setTheme('replit')" title="Replit"></div>
+                </div>
+                <small>Vyberte barevné schéma rozhraní</small>
+            </div>
             
             <div class="settings-actions">
-                <button onclick="saveSettings()" class="primary-btn">💾 Uložit nastavení</button>
+                <button onclick="saveSettings()" class="primary-btn">Uložit nastavení</button>
                 <button onclick="toggleSettings()" class="secondary-btn">Zrušit</button>
             </div>
             
             <div class="settings-footer">
-                <button onclick="exportConfig()" class="link-btn">📤 Export konfigurace</button>
-                <button onclick="importConfig()" class="link-btn">📥 Import konfigurace</button>
-                <button onclick="clearAllData()" class="link-btn danger">🗑️ Vymazat vše</button>
+                <button onclick="exportConfig()" class="link-btn">Export konfigurace</button>
+                <button onclick="importConfig()" class="link-btn">Import konfigurace</button>
+                <button onclick="clearAllData()" class="link-btn danger">Vymazat vše</button>
             </div>
             
             <div class="security-info">
-                🔒 Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.
+                Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.
             </div>
         </div>
         
@@ -86,9 +104,6 @@
         
         <div id="chat-messages" class="chat-messages">
             <div class="welcome-container">
-                <div class="welcome-title">Vítejte v Tabidoo CRM Asistentovi</div>
-                <div class="welcome-subtitle">Inteligentní asistent pro práci s vašimi CRM daty</div>
-                
                 <div class="example-queries" id="example-queries">
                     <!-- Příklady budou načteny dynamicky -->
                 </div>
@@ -99,7 +114,6 @@
             <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
             <button id="send-button" class="send-button" onclick="sendMessage()">
                 <span>Odeslat</span>
-                <span>↗️</span>
             </button>
         </div>
     </div>
@@ -116,10 +130,53 @@
     <script src="main.js"></script>
     
     <script>
+        // Theme Management
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('selectedTheme', theme);
+            
+            // Update active theme indicator
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`.theme-${theme}`).classList.add('active');
+        }
+
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme') || 'claude';
+            setTheme(savedTheme);
+        }
+
+        // Dropdown Management
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdownMenu');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.wizard-button')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content');
+                for (let dropdown of dropdowns) {
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
         // Pomocné funkce
         function toggleVisibility(fieldId) {
             const field = document.getElementById(fieldId);
-            field.type = field.type === 'password' ? 'text' : 'password';
+            const button = field.nextElementSibling;
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.textContent = 'Skrýt';
+            } else {
+                field.type = 'password';
+                button.textContent = 'Zobrazit';
+            }
         }
         
         function clearAllData() {
@@ -153,17 +210,16 @@
             if (!exampleQueriesContainer) return;
             
             const examples = CONFIG.EXAMPLE_QUERIES || [
-                { icon: '📊', text: 'Kolik firem je v systému?' },
-                { icon: '📋', text: 'Vypiš všechny firmy' },
-                { icon: '🔍', text: 'Najdi firmu Alza' },
-                { icon: '👥', text: 'Kolik kontaktů máme?' },
-                { icon: '💼', text: 'Vypiš obchodní případy' },
-                { icon: '📈', text: 'Kolik aktivit proběhlo?' }
+                { icon: '', text: 'Kolik firem je v systému?' },
+                { icon: '', text: 'Vypiš všechny firmy' },
+                { icon: '', text: 'Najdi firmu Alza' },
+                { icon: '', text: 'Kolik kontaktů máme?' },
+                { icon: '', text: 'Vypiš obchodní případy' },
+                { icon: '', text: 'Kolik aktivit proběhlo?' }
             ];
             
             exampleQueriesContainer.innerHTML = examples.map(example => `
                 <div class="example-query" onclick="clickExampleQuery('${example.text}')">
-                    <span class="example-query-icon">${example.icon}</span>
                     ${example.text}
                 </div>
             `).join('');
@@ -188,12 +244,6 @@
             });
         }
         
-        // Inicializace UI enhancements
-        document.addEventListener('DOMContentLoaded', function() {
-            loadExampleQueries();
-            setupAutoResize();
-        });
-        
         // Skrytí welcome screen při první zprávě
         function hideWelcomeScreen() {
             const welcomeContainer = document.querySelector('.welcome-container');
@@ -201,6 +251,13 @@
                 welcomeContainer.style.display = 'none';
             }
         }
+        
+        // Inicializace UI enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            loadExampleQueries();
+            setupAutoResize();
+        });
         
         // DEBUG: Override addMessage s blokem problematické zprávy
         const originalAddMessage = window.addMessage;
