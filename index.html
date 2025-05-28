@@ -336,19 +336,59 @@
         window.cancelSetupWizard = cancelSetupWizard;
         
         // === INTEGRATION WITH EXISTING SYSTEM ===
-        const originalShowWelcomeScreen = window.showWelcomeScreen;
-        if (originalShowWelcomeScreen) {
-            window.showWelcomeScreen = function() {
-                const result = originalShowWelcomeScreen();
-                setTimeout(() => {
-                    loadExampleQueries();
-                }, 100);
-                return result;
-            };
+        
+        // FORCE override showWelcomeScreen AFTER all scripts load
+        function forceCorrectWelcomeScreen() {
+            const chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) return;
+            
+            chatMessages.innerHTML = `
+                <div class="welcome-container">
+                    <div class="example-queries" id="example-queries">
+                        <!-- Příklady budou načteny dynamicky -->
+                    </div>
+                </div>
+            `;
+            
+            // Load example queries immediately
+            loadExampleQueries();
         }
         
-        if (typeof window.loadExampleQueries !== 'undefined') {
-            window.loadExampleQueries = loadExampleQueries;
+        // Override the function MULTIPLE times to ensure it sticks
+        window.showWelcomeScreen = forceCorrectWelcomeScreen;
+        
+        // Watch for any attempts to change welcome screen content
+        let welcomeObserver;
+        function startWelcomeScreenProtection() {
+            const chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) return;
+            
+            // Disconnect existing observer
+            if (welcomeObserver) {
+                welcomeObserver.disconnect();
+            }
+            
+            // Create new observer to watch for unwanted changes
+            welcomeObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        const welcomeContainer = chatMessages.querySelector('.welcome-container');
+                        if (welcomeContainer) {
+                            // Check if unwanted buttons were added
+                            const actionButtons = welcomeContainer.querySelector('.welcome-actions, .help-btn, .examples-btn');
+                            if (actionButtons) {
+                                console.log('🛡️ Blocking unwanted welcome buttons');
+                                forceCorrectWelcomeScreen();
+                            }
+                        }
+                    }
+                });
+            });
+            
+            welcomeObserver.observe(chatMessages, {
+                childList: true,
+                subtree: true
+            });
         }
         
         // === INITIALIZATION ===
@@ -356,8 +396,13 @@
             console.log('🎨 Enhanced UI initializing...');
             
             loadAppTheme();
-            loadExampleQueries();
             setupAutoResize();
+            
+            // Start protection and force correct welcome screen
+            setTimeout(() => {
+                startWelcomeScreenProtection();
+                forceCorrectWelcomeScreen();
+            }, 100);
             
             console.log('🎨 Enhanced UI ready');
         });
@@ -366,10 +411,33 @@
         if (document.readyState !== 'loading') {
             setTimeout(() => {
                 loadAppTheme();
-                loadExampleQueries();
                 setupAutoResize();
-            }, 100);
+                startWelcomeScreenProtection();
+                forceCorrectWelcomeScreen();
+            }, 200);
         }
+        
+        // AGGRESSIVE override - keep overriding the function every 100ms for 2 seconds
+        let overrideAttempts = 0;
+        const maxOverrideAttempts = 20;
+        
+        const overrideInterval = setInterval(() => {
+            if (overrideAttempts >= maxOverrideAttempts) {
+                clearInterval(overrideInterval);
+                return;
+            }
+            
+            window.showWelcomeScreen = forceCorrectWelcomeScreen;
+            window.loadExampleQueries = loadExampleQueries;
+            overrideAttempts++;
+            
+            // Also force correct display if chat-messages exists
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages && chatMessages.innerHTML.includes('welcome-actions')) {
+                console.log('🛡️ Detected unwanted buttons, forcing correct display');
+                forceCorrectWelcomeScreen();
+            }
+        }, 100);
         
         // === COMPATIBILITY CHECKS ===
         setTimeout(() => {
@@ -391,6 +459,18 @@
                 console.warn('⚠️ CONFIG object not found');
             } else {
                 console.log('✅ CONFIG loaded');
+            }
+            
+            // Check if settings footer buttons are visible
+            const settingsFooter = document.querySelector('.settings-footer');
+            if (settingsFooter) {
+                const buttons = settingsFooter.querySelectorAll('.link-btn');
+                console.log('✅ Settings footer found with', buttons.length, 'buttons');
+                buttons.forEach((btn, index) => {
+                    console.log(`  Button ${index + 1}:`, btn.textContent);
+                });
+            } else {
+                console.warn('⚠️ Settings footer not found');
             }
         }, 1000);
     </script>
