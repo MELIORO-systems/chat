@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="wizard-styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
-<body data-theme="claude">
+<body>
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-content">
@@ -29,21 +29,23 @@
                     Jak systém funguje
                 </button>
                 <div class="dropdown">
-                    <button class="header-btn wizard-button" onclick="toggleDropdown()" title="Nastavení nové aplikace">
+                    <button class="header-btn wizard-button" onclick="toggleAppDropdown()" title="Nastavení nové aplikace">
                         Nastavení nové aplikace
                     </button>
-                    <div class="dropdown-content" id="dropdownMenu">
-                        <button class="dropdown-item" onclick="startSetupWizard()">Průvodce nastavením</button>
-                        <button class="dropdown-item" onclick="exportConfig()">Export konfigurace</button>
-                        <button class="dropdown-item" onclick="importConfig()">Import konfigurace</button>
-                        <button class="dropdown-item" onclick="clearAllData()">Vymazat vše</button>
+                    <div class="dropdown-content" id="appDropdownMenu">
+                        <button class="dropdown-item" onclick="startSetupWizard(); closeAppDropdown();">Průvodce nastavením</button>
+                        <button class="dropdown-item" onclick="exportConfig(); closeAppDropdown();">Export konfigurace</button>
+                        <button class="dropdown-item" onclick="importConfig(); closeAppDropdown();">Import konfigurace</button>
+                        <button class="dropdown-item" onclick="clearAllData(); closeAppDropdown();">Vymazat vše</button>
                     </div>
                 </div>
             </div>
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
-            <div class="settings-title">Nastavení API</div>
+            <div class="settings-title">
+                Zabezpečené nastavení API
+            </div>
             
             <div class="settings-section">
                 <label for="openai-key">OpenAI API klíč:</label>
@@ -72,9 +74,9 @@
             <div class="settings-section">
                 <label>Barevné schéma:</label>
                 <div class="theme-selector">
-                    <div class="theme-option theme-claude active" onclick="setTheme('claude')" title="Claude (výchozí)"></div>
-                    <div class="theme-option theme-google" onclick="setTheme('google')" title="Google"></div>
-                    <div class="theme-option theme-replit" onclick="setTheme('replit')" title="Replit"></div>
+                    <div class="theme-option theme-claude active" onclick="setAppTheme('claude')" title="Claude (výchozí)"></div>
+                    <div class="theme-option theme-google" onclick="setAppTheme('google')" title="Google"></div>
+                    <div class="theme-option theme-replit" onclick="setAppTheme('replit')" title="Replit"></div>
                 </div>
                 <small>Vyberte barevné schéma rozhraní</small>
             </div>
@@ -110,7 +112,7 @@
             </div>
         </div>
         
-        <div class="chat-input-area">
+        <div class="chat-input-area" id="chat-input-area">
             <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
             <button id="send-button" class="send-button" onclick="sendMessage()">
                 <span>Odeslat</span>
@@ -130,33 +132,53 @@
     <script src="main.js"></script>
     
     <script>
-        // Theme Management
-        function setTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('selectedTheme', theme);
+        // === THEME MANAGEMENT - Kompatibilní s existujícím systémem ===
+        function setAppTheme(theme) {
+            // Odstranit všechny theme classes
+            document.body.classList.remove('theme-claude', 'theme-google', 'theme-replit');
+            
+            // Přidat nový theme
+            if (theme !== 'claude') {
+                document.body.classList.add('theme-' + theme);
+            }
+            
+            // Uložit do localStorage
+            localStorage.setItem('selectedAppTheme', theme);
             
             // Update active theme indicator
             document.querySelectorAll('.theme-option').forEach(option => {
                 option.classList.remove('active');
             });
-            document.querySelector(`.theme-${theme}`).classList.add('active');
+            const activeOption = document.querySelector('.theme-' + theme);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
         }
 
-        // Load saved theme
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('selectedTheme') || 'claude';
-            setTheme(savedTheme);
+        // Load saved theme - kompatibilní s existujícím systémem
+        function loadAppTheme() {
+            const savedTheme = localStorage.getItem('selectedAppTheme') || 'claude';
+            setAppTheme(savedTheme);
         }
 
-        // Dropdown Management
-        function toggleDropdown() {
-            const dropdown = document.getElementById('dropdownMenu');
-            dropdown.classList.toggle('show');
+        // === DROPDOWN MANAGEMENT - Unikátní názvy funkcí ===
+        function toggleAppDropdown() {
+            const dropdown = document.getElementById('appDropdownMenu');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
         }
 
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.wizard-button')) {
+        function closeAppDropdown() {
+            const dropdown = document.getElementById('appDropdownMenu');
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        // Close dropdown when clicking outside - upraveno pro kompatibilitu
+        document.addEventListener('click', function(event) {
+            if (!event.target.matches('.wizard-button') && !event.target.closest('.dropdown')) {
                 const dropdowns = document.getElementsByClassName('dropdown-content');
                 for (let dropdown of dropdowns) {
                     if (dropdown.classList.contains('show')) {
@@ -164,21 +186,25 @@
                     }
                 }
             }
-        }
+        });
 
-        // Pomocné funkce
+        // === HELPER FUNCTIONS - Kompatibilní s existujícími ===
         function toggleVisibility(fieldId) {
             const field = document.getElementById(fieldId);
-            const button = field.nextElementSibling;
+            if (!field) return;
+            
+            const button = field.parentNode.querySelector('.toggle-btn');
             if (field.type === 'password') {
                 field.type = 'text';
-                button.textContent = 'Skrýt';
+                if (button) button.textContent = 'Skrýt';
             } else {
                 field.type = 'password';
-                button.textContent = 'Zobrazit';
+                if (button) button.textContent = 'Zobrazit';
             }
         }
         
+        // Přepsat původní clearAllData - zachovat funkcionalitu
+        const originalClearAllData = window.clearAllData;
         function clearAllData() {
             if (confirm('Opravdu chcete vymazat všechna data včetně API klíčů?\n\nTato akce je nevratná!')) {
                 localStorage.clear();
@@ -187,45 +213,60 @@
             }
         }
         
-        // Manuální spuštění diagnostiky
+        // Přepsat původní runDiagnosticsManual - zachovat funkcionalitu
         function runDiagnosticsManual() {
-            localStorage.removeItem(CONFIG.CACHE.DIAGNOSTICS_KEY);
+            if (typeof CONFIG !== 'undefined' && CONFIG.CACHE && CONFIG.CACHE.DIAGNOSTICS_KEY) {
+                localStorage.removeItem(CONFIG.CACHE.DIAGNOSTICS_KEY);
+            }
             location.reload();
         }
         
-        // Klikací příklady dotazů
-        function clickExampleQuery(query) {
-            const chatInput = document.getElementById('chat-input');
-            chatInput.value = query;
-            chatInput.focus();
-            
-            // Auto-resize textarea
-            chatInput.style.height = 'auto';
-            chatInput.style.height = chatInput.scrollHeight + 'px';
-        }
-        
-        // Načtení příkladů dotazů
+        // === ENHANCED EXAMPLE QUERIES - Kompatibilní s config.js ===
         function loadExampleQueries() {
             const exampleQueriesContainer = document.getElementById('example-queries');
             if (!exampleQueriesContainer) return;
             
-            const examples = CONFIG.EXAMPLE_QUERIES || [
-                { icon: '', text: 'Kolik firem je v systému?' },
-                { icon: '', text: 'Vypiš všechny firmy' },
-                { icon: '', text: 'Najdi firmu Alza' },
-                { icon: '', text: 'Kolik kontaktů máme?' },
-                { icon: '', text: 'Vypiš obchodní případy' },
-                { icon: '', text: 'Kolik aktivit proběhlo?' }
-            ];
+            // Použít CONFIG.EXAMPLE_QUERIES pokud existuje, jinak fallback
+            let examples = [];
+            if (typeof CONFIG !== 'undefined' && CONFIG.EXAMPLE_QUERIES) {
+                examples = CONFIG.EXAMPLE_QUERIES;
+            } else {
+                examples = [
+                    { icon: '', text: 'Kolik firem je v systému?' },
+                    { icon: '', text: 'Vypiš všechny firmy' },
+                    { icon: '', text: 'Najdi firmu Alza' },
+                    { icon: '', text: 'Kolik kontaktů máme?' },
+                    { icon: '', text: 'Vypiš obchodní případy' },
+                    { icon: '', text: 'Kolik aktivit proběhlo?' }
+                ];
+            }
             
             exampleQueriesContainer.innerHTML = examples.map(example => `
-                <div class="example-query" onclick="clickExampleQuery('${example.text}')">
+                <div class="example-query" onclick="clickExampleQuery('${example.text.replace(/'/g, "\\'")}')">
                     ${example.text}
                 </div>
             `).join('');
         }
         
-        // Auto-resize textarea
+        // Enhanced clickExampleQuery - kompatibilní s display.js
+        function clickExampleQuery(query) {
+            const chatInput = document.getElementById('chat-input');
+            if (!chatInput) return;
+            
+            chatInput.value = query;
+            chatInput.focus();
+            
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+            
+            // Zavolat existující hideWelcomeScreen pokud existuje
+            if (typeof hideWelcomeScreen === 'function') {
+                hideWelcomeScreen();
+            }
+        }
+        
+        // === AUTO-RESIZE TEXTAREA - Enhanced verze ===
         function setupAutoResize() {
             const chatInput = document.getElementById('chat-input');
             if (!chatInput) return;
@@ -239,48 +280,90 @@
             chatInput.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault();
-                    sendMessage();
+                    if (typeof sendMessage === 'function') {
+                        sendMessage();
+                    }
                 }
             });
         }
         
-        // Skrytí welcome screen při první zprávě
-        function hideWelcomeScreen() {
-            const welcomeContainer = document.querySelector('.welcome-container');
-            if (welcomeContainer) {
-                welcomeContainer.style.display = 'none';
-            }
-        }
+        // === INTEGRATION WITH EXISTING SYSTEM ===
         
-        // Inicializace UI enhancements
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTheme();
-            loadExampleQueries();
-            setupAutoResize();
-        });
-        
-        // DEBUG: Override addMessage s blokem problematické zprávy
-        const originalAddMessage = window.addMessage;
-        if (originalAddMessage) {
-            window.addMessage = function(role, content) {
-                // DEBUG: Zachytit a ZABLOKOVAT problematickou zprávu
-                if (content && content.includes('🎯 Nový hybridní systém')) {
-                    console.error('🚨 NALEZENA A ZABLOKOVÁNA PROBLEMATICKÁ ZPRÁVA!');
-                    console.error('Role:', role);
-                    console.error('Content preview:', content.substring(0, 100));
-                    console.trace('Stack trace:');
-                    
-                    // BLOKOVAT tuto zprávu - NEPOSÍLAT DÁLE
-                    console.log('🛑 Message blocked - not adding to chat');
-                    return;
-                }
+        // Override původní showWelcomeScreen pokud existuje
+        const originalShowWelcomeScreen = window.showWelcomeScreen;
+        if (originalShowWelcomeScreen) {
+            window.showWelcomeScreen = function() {
+                // Zavolat původní funkci
+                const result = originalShowWelcomeScreen();
                 
-                if (role === 'user' || role === 'assistant') {
-                    hideWelcomeScreen();
-                }
-                return originalAddMessage(role, content);
+                // Pak načíst naše příklady
+                setTimeout(() => {
+                    loadExampleQueries();
+                }, 100);
+                
+                return result;
             };
         }
+        
+        // Override původní loadExampleQueries pokud existuje v display.js
+        if (typeof window.loadExampleQueries !== 'undefined') {
+            window.loadExampleQueries = loadExampleQueries;
+        }
+        
+        // === INITIALIZATION - Kompatibilní s existujícím systémem ===
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎨 Theme system initializing...');
+            
+            // Načíst theme
+            loadAppTheme();
+            
+            // Načíst příklady dotazů
+            loadExampleQueries();
+            
+            // Setup auto-resize
+            setupAutoResize();
+            
+            console.log('🎨 Theme system ready');
+        });
+        
+        // Fallback pokud se DOMContentLoaded už vyvolal
+        if (document.readyState === 'loading') {
+            // DOMContentLoaded se ještě nevyvolal
+        } else {
+            // DOMContentLoaded se už vyvolal, spustit rovnou
+            setTimeout(() => {
+                loadAppTheme();
+                loadExampleQueries();
+                setupAutoResize();
+            }, 100);
+        }
+        
+        // === COMPATIBILITY CHECKS ===
+        
+        // Kontrola existence klíčových funkcí
+        setTimeout(() => {
+            const requiredFunctions = [
+                'sendMessage', 'toggleSettings', 'saveSettings', 
+                'refreshData', 'startSetupWizard', 'exportConfig', 
+                'importConfig', 'showSystemHelp'
+            ];
+            
+            const missingFunctions = requiredFunctions.filter(fn => typeof window[fn] !== 'function');
+            
+            if (missingFunctions.length > 0) {
+                console.warn('⚠️ Missing functions:', missingFunctions);
+            } else {
+                console.log('✅ All required functions are available');
+            }
+            
+            // Kontrola CONFIG objektu
+            if (typeof CONFIG === 'undefined') {
+                console.warn('⚠️ CONFIG object not found');
+            } else {
+                console.log('✅ CONFIG object loaded:', Object.keys(CONFIG));
+            }
+        }, 1000);
+        
     </script>
 </body>
 </html>
