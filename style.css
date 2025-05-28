@@ -408,6 +408,7 @@ body {
     border-radius: var(--radius);
     transition: all 0.2s ease;
     font-weight: 400;
+    white-space: nowrap;
 }
 
 .link-btn:hover {
@@ -660,6 +661,20 @@ body {
 
 .welcome-subtitle {
     display: none;
+}
+
+/* Hide any welcome action buttons */
+.welcome-actions {
+    display: none !important;
+}
+
+.welcome-action-btn {
+    display: none !important;
+}
+
+.help-btn,
+.examples-btn {
+    display: none !important;
 }
 
 .example-queries {
