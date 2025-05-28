@@ -16,39 +16,45 @@
                 <div class="header-subtitle">Hybridní AI systém je připraven k použití</div>
             </div>
             <div class="header-buttons">
-                <button class="header-btn refresh-button" onclick="refreshData()" title="Obnovit data z Tabidoo">
-                    Obnovit data
-                </button>
-                <button class="header-btn settings-button" onclick="toggleSettings()" title="Nastavení">
-                    Nastavení
-                </button>
-                <button class="header-btn diagnostic-button" onclick="runDiagnosticsManual()" title="Diagnostika">
-                    Diagnostika
-                </button>
-                <button class="header-btn help-button" onclick="showSystemHelp()" title="Jak systém funguje">
-                    Jak systém funguje
-                </button>
                 <div class="dropdown">
-                    <button class="header-btn wizard-button" onclick="toggleAppDropdown()" title="Nastavení nové aplikace">
-                        Nastavení nové aplikace
+                    <button class="menu-button" onclick="toggleMainMenu()">
+                        Menu
                     </button>
-                    <div class="dropdown-content" id="appDropdownMenu">
-                        <button class="dropdown-item" onclick="startSetupWizard(); closeAppDropdown();">Průvodce nastavením</button>
-                        <button class="dropdown-item" onclick="exportConfig(); closeAppDropdown();">Export konfigurace</button>
-                        <button class="dropdown-item" onclick="importConfig(); closeAppDropdown();">Import konfigurace</button>
-                        <button class="dropdown-item" onclick="clearAllData(); closeAppDropdown();">Vymazat vše</button>
+                    <div class="dropdown-content" id="mainMenu">
+                        <button class="dropdown-item" onclick="refreshData(); closeMainMenu();">
+                            Obnovit data
+                        </button>
+                        <button class="dropdown-item" onclick="toggleSettings(); closeMainMenu();">
+                            Nastavení
+                        </button>
+                        <button class="dropdown-item" onclick="runDiagnosticsManual(); closeMainMenu();">
+                            Diagnostika
+                        </button>
+                        <button class="dropdown-item" onclick="showSystemHelp(); closeMainMenu();">
+                            Jak systém funguje
+                        </button>
+                        <button class="dropdown-item" onclick="startSetupWizard(); closeMainMenu();">
+                            Nastavení nové aplikace
+                        </button>
+                        <button class="dropdown-item" onclick="exportConfig(); closeMainMenu();">
+                            Export konfigurace
+                        </button>
+                        <button class="dropdown-item" onclick="importConfig(); closeMainMenu();">
+                            Import konfigurace
+                        </button>
+                        <button class="dropdown-item danger" onclick="clearAllData(); closeMainMenu();">
+                            Vymazat vše
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
-            <div class="settings-title">
-                Zabezpečené nastavení API
-            </div>
+            <div class="settings-title">Nastavení API</div>
             
             <div class="settings-section">
-                <label for="openai-key">OpenAI API klíč:</label>
+                <label for="openai-key">OpenAI API klíč</label>
                 <div class="input-group">
                     <input type="password" id="openai-key" placeholder="sk-...">
                     <button onclick="toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
@@ -57,7 +63,7 @@
             </div>
             
             <div class="settings-section">
-                <label for="tabidoo-token">Tabidoo API token:</label>
+                <label for="tabidoo-token">Tabidoo API token</label>
                 <div class="input-group">
                     <input type="password" id="tabidoo-token" placeholder="eyJ...">
                     <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
@@ -66,13 +72,13 @@
             </div>
             
             <div class="settings-section">
-                <label for="tabidoo-app-id">Tabidoo App ID:</label>
+                <label for="tabidoo-app-id">Tabidoo App ID</label>
                 <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
                 <small>Název vaší aplikace v Tabidoo</small>
             </div>
 
             <div class="settings-section">
-                <label>Barevné schéma:</label>
+                <label>Barevné schéma</label>
                 <div class="theme-selector">
                     <div class="theme-option theme-claude active" onclick="setAppTheme('claude')" title="Claude (výchozí)"></div>
                     <div class="theme-option theme-google" onclick="setAppTheme('google')" title="Google"></div>
@@ -84,12 +90,6 @@
             <div class="settings-actions">
                 <button onclick="saveSettings()" class="primary-btn">Uložit nastavení</button>
                 <button onclick="toggleSettings()" class="secondary-btn">Zrušit</button>
-            </div>
-            
-            <div class="settings-footer">
-                <button onclick="exportConfig()" class="link-btn">Export konfigurace</button>
-                <button onclick="importConfig()" class="link-btn">Import konfigurace</button>
-                <button onclick="clearAllData()" class="link-btn danger">Vymazat vše</button>
             </div>
             
             <div class="security-info">
@@ -115,7 +115,7 @@
         <div class="chat-input-area" id="chat-input-area">
             <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
             <button id="send-button" class="send-button" onclick="sendMessage()">
-                <span>Odeslat</span>
+                Odeslat
             </button>
         </div>
     </div>
@@ -132,20 +132,16 @@
     <script src="main.js"></script>
     
     <script>
-        // === THEME MANAGEMENT - Kompatibilní s existujícím systémem ===
+        // === THEME MANAGEMENT ===
         function setAppTheme(theme) {
-            // Odstranit všechny theme classes
             document.body.classList.remove('theme-claude', 'theme-google', 'theme-replit');
             
-            // Přidat nový theme
             if (theme !== 'claude') {
                 document.body.classList.add('theme-' + theme);
             }
             
-            // Uložit do localStorage
             localStorage.setItem('selectedAppTheme', theme);
             
-            // Update active theme indicator
             document.querySelectorAll('.theme-option').forEach(option => {
                 option.classList.remove('active');
             });
@@ -155,30 +151,29 @@
             }
         }
 
-        // Load saved theme - kompatibilní s existujícím systémem
         function loadAppTheme() {
             const savedTheme = localStorage.getItem('selectedAppTheme') || 'claude';
             setAppTheme(savedTheme);
         }
 
-        // === DROPDOWN MANAGEMENT - Unikátní názvy funkcí ===
-        function toggleAppDropdown() {
-            const dropdown = document.getElementById('appDropdownMenu');
+        // === MENU MANAGEMENT ===
+        function toggleMainMenu() {
+            const dropdown = document.getElementById('mainMenu');
             if (dropdown) {
                 dropdown.classList.toggle('show');
             }
         }
 
-        function closeAppDropdown() {
-            const dropdown = document.getElementById('appDropdownMenu');
+        function closeMainMenu() {
+            const dropdown = document.getElementById('mainMenu');
             if (dropdown) {
                 dropdown.classList.remove('show');
             }
         }
 
-        // Close dropdown when clicking outside - upraveno pro kompatibilitu
+        // Close menu when clicking outside
         document.addEventListener('click', function(event) {
-            if (!event.target.matches('.wizard-button') && !event.target.closest('.dropdown')) {
+            if (!event.target.matches('.menu-button') && !event.target.closest('.dropdown')) {
                 const dropdowns = document.getElementsByClassName('dropdown-content');
                 for (let dropdown of dropdowns) {
                     if (dropdown.classList.contains('show')) {
@@ -188,7 +183,7 @@
             }
         });
 
-        // === HELPER FUNCTIONS - Kompatibilní s existujícími ===
+        // === HELPER FUNCTIONS ===
         function toggleVisibility(fieldId) {
             const field = document.getElementById(fieldId);
             if (!field) return;
@@ -203,8 +198,6 @@
             }
         }
         
-        // Přepsat původní clearAllData - zachovat funkcionalitu
-        const originalClearAllData = window.clearAllData;
         function clearAllData() {
             if (confirm('Opravdu chcete vymazat všechna data včetně API klíčů?\n\nTato akce je nevratná!')) {
                 localStorage.clear();
@@ -213,7 +206,6 @@
             }
         }
         
-        // Přepsat původní runDiagnosticsManual - zachovat funkcionalitu
         function runDiagnosticsManual() {
             if (typeof CONFIG !== 'undefined' && CONFIG.CACHE && CONFIG.CACHE.DIAGNOSTICS_KEY) {
                 localStorage.removeItem(CONFIG.CACHE.DIAGNOSTICS_KEY);
@@ -221,23 +213,22 @@
             location.reload();
         }
         
-        // === ENHANCED EXAMPLE QUERIES - Kompatibilní s config.js ===
+        // === EXAMPLE QUERIES ===
         function loadExampleQueries() {
             const exampleQueriesContainer = document.getElementById('example-queries');
             if (!exampleQueriesContainer) return;
             
-            // Použít CONFIG.EXAMPLE_QUERIES pokud existuje, jinak fallback
             let examples = [];
             if (typeof CONFIG !== 'undefined' && CONFIG.EXAMPLE_QUERIES) {
                 examples = CONFIG.EXAMPLE_QUERIES;
             } else {
                 examples = [
-                    { icon: '', text: 'Kolik firem je v systému?' },
-                    { icon: '', text: 'Vypiš všechny firmy' },
-                    { icon: '', text: 'Najdi firmu Alza' },
-                    { icon: '', text: 'Kolik kontaktů máme?' },
-                    { icon: '', text: 'Vypiš obchodní případy' },
-                    { icon: '', text: 'Kolik aktivit proběhlo?' }
+                    { text: 'Kolik firem je v systému?' },
+                    { text: 'Vypiš všechny firmy' },
+                    { text: 'Najdi firmu Alza' },
+                    { text: 'Kolik kontaktů máme?' },
+                    { text: 'Vypiš obchodní případy' },
+                    { text: 'Kolik aktivit proběhlo?' }
                 ];
             }
             
@@ -248,7 +239,6 @@
             `).join('');
         }
         
-        // Enhanced clickExampleQuery - kompatibilní s display.js
         function clickExampleQuery(query) {
             const chatInput = document.getElementById('chat-input');
             if (!chatInput) return;
@@ -256,17 +246,15 @@
             chatInput.value = query;
             chatInput.focus();
             
-            // Auto-resize textarea
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
             
-            // Zavolat existující hideWelcomeScreen pokud existuje
             if (typeof hideWelcomeScreen === 'function') {
                 hideWelcomeScreen();
             }
         }
         
-        // === AUTO-RESIZE TEXTAREA - Enhanced verze ===
+        // === AUTO-RESIZE TEXTAREA ===
         function setupAutoResize() {
             const chatInput = document.getElementById('chat-input');
             if (!chatInput) return;
@@ -276,7 +264,6 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            // Enter pro odeslání, Shift+Enter pro nový řádek
             chatInput.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault();
@@ -287,50 +274,80 @@
             });
         }
         
-        // === INTEGRATION WITH EXISTING SYSTEM ===
+        // === ENHANCED SYSTEM HELP ===
+        function showSystemHelp() {
+            const chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) return;
+            
+            const helpContent = `
+                <div class="system-help">
+                    <div class="help-header">
+                        <h3>Jak systém funguje</h3>
+                        <button class="help-close-btn" onclick="showWelcomeScreen()">&times;</button>
+                    </div>
+                    
+                    <div class="help-content">
+                        <div class="help-section">
+                            <h4>Hybridní AI přístup</h4>
+                            <p>Kombinuje rychlé lokální vyhledávání s inteligentní AI komunikací. 
+                            Vaše data zpracovávám lokálně pro rychlost a přesnost, ChatGPT používám jen pro formulaci odpovědí.</p>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>Klíčové výhody</h4>
+                            <ul class="help-list">
+                                <li>Okamžité odpovědi bez čekání na API</li>
+                                <li>100% přesnost při počítání záznamů</li>
+                                <li>Inteligentní rozpoznávání různých tvarů slov</li>
+                                <li>Chytré vyhledávání nezávislé na velikosti písmen</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>Co umím</h4>
+                            <ul class="help-list">
+                                <li>Počítat záznamy - "Kolik firem máme?"</li>
+                                <li>Vypisovat seznamy - "Vypiš všechny kontakty"</li>
+                                <li>Vyhledávat konkrétní záznamy - "Najdi firmu XYZ"</li>
+                                <li>Najít související informace - "Jaké aktivity má firma ABC?"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.innerHTML = helpContent;
+        }
         
-        // Override původní showWelcomeScreen pokud existuje
+        // === INTEGRATION WITH EXISTING SYSTEM ===
         const originalShowWelcomeScreen = window.showWelcomeScreen;
         if (originalShowWelcomeScreen) {
             window.showWelcomeScreen = function() {
-                // Zavolat původní funkci
                 const result = originalShowWelcomeScreen();
-                
-                // Pak načíst naše příklady
                 setTimeout(() => {
                     loadExampleQueries();
                 }, 100);
-                
                 return result;
             };
         }
         
-        // Override původní loadExampleQueries pokud existuje v display.js
         if (typeof window.loadExampleQueries !== 'undefined') {
             window.loadExampleQueries = loadExampleQueries;
         }
         
-        // === INITIALIZATION - Kompatibilní s existujícím systémem ===
+        // === INITIALIZATION ===
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎨 Theme system initializing...');
+            console.log('🎨 Enhanced UI initializing...');
             
-            // Načíst theme
             loadAppTheme();
-            
-            // Načíst příklady dotazů
             loadExampleQueries();
-            
-            // Setup auto-resize
             setupAutoResize();
             
-            console.log('🎨 Theme system ready');
+            console.log('🎨 Enhanced UI ready');
         });
         
-        // Fallback pokud se DOMContentLoaded už vyvolal
-        if (document.readyState === 'loading') {
-            // DOMContentLoaded se ještě nevyvolal
-        } else {
-            // DOMContentLoaded se už vyvolal, spustit rovnou
+        // Fallback for already loaded DOM
+        if (document.readyState !== 'loading') {
             setTimeout(() => {
                 loadAppTheme();
                 loadExampleQueries();
@@ -339,13 +356,11 @@
         }
         
         // === COMPATIBILITY CHECKS ===
-        
-        // Kontrola existence klíčových funkcí
         setTimeout(() => {
             const requiredFunctions = [
                 'sendMessage', 'toggleSettings', 'saveSettings', 
                 'refreshData', 'startSetupWizard', 'exportConfig', 
-                'importConfig', 'showSystemHelp'
+                'importConfig'
             ];
             
             const missingFunctions = requiredFunctions.filter(fn => typeof window[fn] !== 'function');
@@ -353,17 +368,15 @@
             if (missingFunctions.length > 0) {
                 console.warn('⚠️ Missing functions:', missingFunctions);
             } else {
-                console.log('✅ All required functions are available');
+                console.log('✅ All required functions available');
             }
             
-            // Kontrola CONFIG objektu
             if (typeof CONFIG === 'undefined') {
                 console.warn('⚠️ CONFIG object not found');
             } else {
-                console.log('✅ CONFIG object loaded:', Object.keys(CONFIG));
+                console.log('✅ CONFIG loaded');
             }
         }, 1000);
-        
     </script>
 </body>
 </html>
