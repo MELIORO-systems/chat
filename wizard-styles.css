@@ -9,6 +9,8 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--border);
+    position: relative;
+    z-index: 1000;
 }
 
 .wizard-header {
