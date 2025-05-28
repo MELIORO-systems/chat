@@ -1,27 +1,30 @@
-/* Setup Wizard Styles */
+/* Setup Wizard Styles - Redesign bez ikon, Claude.ai inspirovaný */
 
+/* === WIZARD CONTAINER === */
 .wizard-container {
     max-width: 700px;
     margin: 2rem auto;
     padding: 2rem;
-    background: var(--surface);
+    background: var(--background);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
 }
 
 .wizard-header {
     text-align: center;
     margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
 }
 
 .wizard-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .wizard-header h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
@@ -32,7 +35,7 @@
     line-height: 1.6;
 }
 
-/* Progress Bar */
+/* === PROGRESS BAR === */
 .wizard-progress {
     margin-bottom: 1.5rem;
 }
@@ -48,23 +51,23 @@
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+    background: var(--primary-color);
     border-radius: 3px;
     transition: width 0.5s ease;
 }
 
 .progress-text {
     font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     text-align: center;
     display: block;
 }
 
-/* Features */
+/* === FEATURES === */
 .wizard-features {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     margin: 2rem 0;
 }
 
@@ -72,30 +75,31 @@
     display: flex;
     align-items: flex-start;
     gap: 1rem;
-    padding: 1rem;
-    background: var(--background);
+    padding: 1.25rem;
+    background: var(--surface);
     border-radius: var(--radius);
     border: 1px solid var(--border);
 }
 
 .feature-icon {
-    font-size: 1.5rem;
-    flex-shrink: 0;
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .feature-item strong {
     display: block;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
 .feature-item p {
     color: var(--text-secondary);
     font-size: 0.875rem;
     margin: 0;
+    line-height: 1.5;
 }
 
-/* Forms */
+/* === FORMS === */
 .wizard-form {
     display: flex;
     flex-direction: column;
@@ -118,7 +122,7 @@
 }
 
 .label-icon {
-    font-size: 1rem;
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .form-group input {
@@ -126,7 +130,8 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     font-size: 0.875rem;
-    background: var(--surface);
+    background: var(--background);
+    color: var(--text-primary);
     transition: all 0.2s ease;
 }
 
@@ -154,13 +159,13 @@
     border: none;
     cursor: pointer;
     padding: 0.25rem;
-    font-size: 1rem;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
 }
 
 .input-with-toggle .toggle-btn:hover {
-    opacity: 1;
+    color: var(--text-primary);
 }
 
 .form-group small {
@@ -172,13 +177,14 @@
 .form-group a {
     color: var(--primary-color);
     text-decoration: none;
+    font-weight: 500;
 }
 
 .form-group a:hover {
     text-decoration: underline;
 }
 
-/* Loading Animation */
+/* === LOADING ANIMATION === */
 .loading-animation {
     display: flex;
     flex-direction: column;
@@ -216,9 +222,10 @@
     gap: 0.75rem;
     padding: 0.75rem;
     border-radius: var(--radius);
-    background: var(--background);
+    background: var(--surface);
     opacity: 0.5;
     transition: all 0.3s ease;
+    border: 1px solid var(--border);
 }
 
 .loading-step.active {
@@ -228,7 +235,7 @@
 }
 
 .step-icon {
-    font-size: 1.2rem;
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .step-text {
@@ -236,7 +243,7 @@
     color: var(--text-primary);
 }
 
-/* Tables Grid */
+/* === TABLES GRID === */
 .tables-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -247,8 +254,8 @@
 .table-card {
     border: 2px solid var(--border);
     border-radius: var(--radius);
-    padding: 1rem;
-    background: var(--surface);
+    padding: 1.25rem;
+    background: var(--background);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -275,6 +282,7 @@
     width: 1.2rem;
     height: 1.2rem;
     cursor: pointer;
+    accent-color: var(--primary-color);
 }
 
 .table-card-header h3 {
@@ -312,7 +320,7 @@
 }
 
 .field-tag {
-    background: var(--background);
+    background: var(--surface);
     color: var(--text-secondary);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
@@ -325,7 +333,7 @@
     color: white;
 }
 
-/* Entity Mapping */
+/* === ENTITY MAPPING === */
 .entity-mapping {
     display: flex;
     flex-direction: column;
@@ -336,7 +344,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1.5rem;
-    background: var(--background);
+    background: var(--surface);
 }
 
 .mapping-header {
@@ -350,14 +358,16 @@
     margin: 0;
     font-size: 1.1rem;
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 .record-count {
     font-size: 0.8rem;
     color: var(--text-muted);
-    background: var(--surface);
+    background: var(--background);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
+    border: 1px solid var(--border);
 }
 
 .mapping-question {
@@ -387,7 +397,7 @@
     border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.2s ease;
-    background: var(--surface);
+    background: var(--background);
 }
 
 .entity-option:hover {
@@ -397,10 +407,11 @@
 
 .entity-option input[type="radio"] {
     margin: 0;
+    accent-color: var(--primary-color);
 }
 
 .option-icon {
-    font-size: 1.1rem;
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .option-text {
@@ -426,7 +437,8 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     font-size: 0.875rem;
-    background: var(--surface);
+    background: var(--background);
+    color: var(--text-primary);
 }
 
 .mapping-keywords small {
@@ -436,7 +448,7 @@
     margin-top: 0.5rem;
 }
 
-/* Examples Editor */
+/* === EXAMPLES EDITOR === */
 .examples-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -448,7 +460,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1rem;
-    background: var(--surface);
+    background: var(--background);
     transition: all 0.2s ease;
 }
 
@@ -466,7 +478,7 @@
     gap: 0.5rem;
     cursor: pointer;
     border: 2px dashed var(--border);
-    background: var(--background);
+    background: var(--surface);
     min-height: 120px;
 }
 
@@ -478,11 +490,13 @@
 .add-icon {
     font-size: 2rem;
     color: var(--text-muted);
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .add-text {
     color: var(--text-secondary);
     font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .example-header {
@@ -493,13 +507,7 @@
 }
 
 .icon-input {
-    width: 3rem;
-    padding: 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    text-align: center;
-    font-size: 1.2rem;
-    background: var(--background);
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .remove-btn {
@@ -511,6 +519,11 @@
     padding: 0.25rem;
     border-radius: var(--radius);
     transition: background 0.2s ease;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .remove-btn:hover {
@@ -525,11 +538,18 @@
     border-radius: var(--radius);
     font-size: 0.875rem;
     font-family: inherit;
-    background: var(--background);
+    background: var(--surface);
+    color: var(--text-primary);
     resize: vertical;
 }
 
-/* Completion Summary */
+.example-text:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* === COMPLETION SUMMARY === */
 .completion-summary {
     display: flex;
     flex-direction: column;
@@ -542,20 +562,20 @@
     align-items: flex-start;
     gap: 1rem;
     padding: 1rem;
-    background: var(--background);
+    background: var(--surface);
     border-radius: var(--radius);
     border: 1px solid var(--border);
 }
 
 .summary-icon {
-    font-size: 1.5rem;
-    flex-shrink: 0;
+    display: none; /* Odstraněno podle požadavků */
 }
 
 .summary-item strong {
     display: block;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
+    font-weight: 600;
 }
 
 .summary-item p {
@@ -565,11 +585,10 @@
 }
 
 .success-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    display: none; /* Odstraněno podle požadavků */
 }
 
-/* Wizard Actions */
+/* === WIZARD ACTIONS === */
 .wizard-actions {
     display: flex;
     justify-content: space-between;
@@ -610,13 +629,13 @@
 }
 
 .wizard-btn.secondary {
-    background: var(--surface-hover);
+    background: var(--surface);
     color: var(--text-primary);
     border: 1px solid var(--border);
 }
 
 .wizard-btn.secondary:hover {
-    background: var(--border);
+    background: var(--surface-hover);
 }
 
 .wizard-btn.large {
@@ -625,7 +644,7 @@
     font-weight: 600;
 }
 
-/* Responsive */
+/* === RESPONSIVE === */
 @media (max-width: 768px) {
     .wizard-container {
         margin: 1rem;
