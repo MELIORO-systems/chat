@@ -18,9 +18,18 @@ class SetupWizard {
     async start() {
         console.log('🧙‍♂️ Starting Setup Wizard...');
         
-        // Skrýt hlavní chat
-        document.getElementById('chat-messages').innerHTML = '';
-        document.getElementById('chat-input-area').style.display = 'none';
+        // OPRAVENO: Zavřít settings panel pokud je otevřený
+        const settingsPanel = document.getElementById('settings-panel');
+        if (settingsPanel && settingsPanel.style.display !== 'none') {
+            settingsPanel.style.display = 'none';
+        }
+        
+        // Skrýt hlavní chat a input
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInputArea = document.getElementById('chat-input-area');
+        
+        if (chatMessages) chatMessages.innerHTML = '';
+        if (chatInputArea) chatInputArea.style.display = 'none';
         
         // Zobrazit wizard
         this.showStep(0);
