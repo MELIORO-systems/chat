@@ -1,4 +1,4 @@
-// Zobrazování dat - ČISTÁ VERZE
+// Zobrazování dat - OPRAVENÁ VERZE bez welcome-actions tlačítek
 
 let welcomeScreenHidden = false;
 
@@ -45,23 +45,10 @@ function showWelcomeScreen() {
     const chatMessages = document.getElementById('chat-messages');
     welcomeScreenHidden = false;
     
+    // OPRAVENO: Odstraněny welcome-actions tlačítka
     chatMessages.innerHTML = `
         <div class="welcome-container">
-            <div class="welcome-title">Tabidoo CRM Asistent</div>
-            <div class="welcome-subtitle">Hybridní AI systém je připraven k použití</div>
-            
-            <div class="welcome-actions">
-                <button class="welcome-action-btn help-btn" onclick="showSystemHelp()">
-                    <span class="action-icon">💡</span>
-                    <span class="action-text">Jak systém funguje</span>
-                </button>
-                <button class="welcome-action-btn examples-btn" onclick="toggleExamples()">
-                    <span class="action-icon">🎯</span>
-                    <span class="action-text">Příklady dotazů</span>
-                </button>
-            </div>
-            
-            <div class="example-queries" id="example-queries" style="display: none;">
+            <div class="example-queries" id="example-queries">
                 <!-- Příklady budou načteny dynamicky -->
             </div>
         </div>
@@ -70,7 +57,7 @@ function showWelcomeScreen() {
     loadExampleQueries();
 }
 
-// System Help
+// System Help - přesunuto z welcome-actions do menu
 function showSystemHelp() {
     const stats = getSystemStats();
     const helpContent = `
@@ -165,27 +152,22 @@ function showSystemHelp() {
 }
 
 // Example Queries
-function toggleExamples() {
-    const examples = document.getElementById('example-queries');
-    const isHidden = examples.style.display === 'none';
-    
-    examples.style.display = isHidden ? 'grid' : 'none';
-    
-    const btn = document.querySelector('.examples-btn .action-text');
-    if (btn) {
-        btn.textContent = isHidden ? 'Skrýt příklady' : 'Příklady dotazů';
-    }
-}
-
 function loadExampleQueries() {
     const exampleQueriesContainer = document.getElementById('example-queries');
     if (!exampleQueriesContainer) return;
     
-    const examples = CONFIG.EXAMPLE_QUERIES || [];
+    const examples = CONFIG.EXAMPLE_QUERIES || [
+        { icon: '📊', text: 'Kolik firem je v systému?' },
+        { icon: '📋', text: 'Vypiš všechny firmy' },
+        { icon: '🔍', text: 'Najdi firmu Alza' },
+        { icon: '👥', text: 'Kolik kontaktů máme?' },
+        { icon: '💼', text: 'Vypiš obchodní případy' },
+        { icon: '📈', text: 'Kolik aktivit proběhlo?' }
+    ];
     
+    // OPRAVENO: Odstraněny ikony podle požadavků
     exampleQueriesContainer.innerHTML = examples.map(example => `
         <div class="example-query" onclick="clickExampleQuery('${example.text.replace(/'/g, "\\'")}')">
-            <span class="example-query-icon">${example.icon}</span>
             ${example.text}
         </div>
     `).join('');
