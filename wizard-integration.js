@@ -1,4 +1,4 @@
-// Integrace Setup Wizard s existujícím systémem
+// Integrace Setup Wizard s existujícím systémem - OPRAVENÁ VERZE
 
 // Zabránit konfliktu se starým init systémem
 let HYBRID_SYSTEM_ACTIVE = true;
@@ -159,26 +159,14 @@ function updateHeaderWithWizardInfo() {
     }
 }
 
-// Přidat tlačítko pro reset wizardu do nastavení
-function addWizardResetButton() {
-    const settingsFooter = document.querySelector('.settings-footer');
-    if (settingsFooter) {
-        const wizardButton = document.createElement('button');
-        wizardButton.className = 'link-btn';
-        wizardButton.textContent = '🧙‍♂️ Překonfigurovat aplikaci';
-        wizardButton.onclick = function() {
-            if (confirm('Opravdu chcete znovu nastavit aplikaci pomocí průvodce?\n\nToto přemaže současnou konfiguraci.')) {
-                localStorage.removeItem('tabidoo_wizard_completed');
-                localStorage.removeItem('tabidoo_wizard_config');
-                startSetupWizard();
-            }
-        };
-        settingsFooter.appendChild(wizardButton);
-    }
-}
+// OPRAVENO: Neodstraňovat settings footer tlačítka
+// Originální funkce addWizardResetButton() byla problematická
+// Nyní zajistíme, že settings footer tlačítka zůstanou v HTML jak mají
 
 // Spustit při načtení stránky
 document.addEventListener('DOMContentLoaded', function() {
     updateHeaderWithWizardInfo();
-    setTimeout(addWizardResetButton, 1000); // Počkat až se načte UI
+    
+    // OPRAVENO: Odstraněno addWizardResetButton - tlačítka jsou už v HTML
+    console.log('🔧 Wizard integration loaded without interfering with settings footer');
 });
