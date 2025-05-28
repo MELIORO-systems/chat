@@ -33,18 +33,6 @@
                         <button class="dropdown-item" onclick="showSystemHelp(); closeMainMenu();">
                             Jak systém funguje
                         </button>
-                        <button class="dropdown-item" onclick="startSetupWizard(); closeMainMenu();">
-                            Nastavení nové aplikace
-                        </button>
-                        <button class="dropdown-item" onclick="exportConfig(); closeMainMenu();">
-                            Export konfigurace
-                        </button>
-                        <button class="dropdown-item" onclick="importConfig(); closeMainMenu();">
-                            Import konfigurace
-                        </button>
-                        <button class="dropdown-item danger" onclick="clearAllData(); closeMainMenu();">
-                            Vymazat vše
-                        </button>
                     </div>
                 </div>
             </div>
@@ -318,6 +306,34 @@
             
             chatMessages.innerHTML = helpContent;
         }
+        
+        // === ENHANCED WIZARD FUNCTIONS ===
+        
+        // Override startSetupWizard to add cancel functionality
+        const originalStartSetupWizard = window.startSetupWizard;
+        if (originalStartSetupWizard) {
+            window.startSetupWizard = function() {
+                // Store reference that wizard was started from menu
+                sessionStorage.setItem('wizardStartedFromMenu', 'true');
+                return originalStartSetupWizard();
+            };
+        }
+        
+        // Add cancel wizard function
+        function cancelSetupWizard() {
+            if (confirm('Opravdu chcete zrušit průvodce nastavením?')) {
+                sessionStorage.removeItem('wizardStartedFromMenu');
+                // Return to normal state
+                if (typeof showWelcomeScreen === 'function') {
+                    showWelcomeScreen();
+                } else {
+                    location.reload();
+                }
+            }
+        }
+        
+        // Make cancel function globally available
+        window.cancelSetupWizard = cancelSetupWizard;
         
         // === INTEGRATION WITH EXISTING SYSTEM ===
         const originalShowWelcomeScreen = window.showWelcomeScreen;
