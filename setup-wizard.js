@@ -1,4 +1,4 @@
-// Setup Wizard - Průvodce nastavením pro Tabidoo aplikace
+// Setup Wizard - Průvodce nastavením pro Tabidoo aplikace - OPRAVENÁ VERZE
 
 class SetupWizard {
     constructor() {
@@ -56,12 +56,11 @@ class SetupWizard {
         }
     }
 
-    // Krok 0: Uvítání
+    // Krok 0: Uvítání - OPRAVENO s tlačítkem Zrušit
     showWelcomeStep(container) {
         container.innerHTML = `
             <div class="wizard-container">
                 <div class="wizard-header">
-                    <div class="wizard-icon">🧙‍♂️</div>
                     <h2>Průvodce nastavením</h2>
                     <p>Pomůžu vám nastavit Tabidoo CRM Asistenta pro vaši aplikaci</p>
                 </div>
@@ -69,21 +68,18 @@ class SetupWizard {
                 <div class="wizard-content">
                     <div class="wizard-features">
                         <div class="feature-item">
-                            <span class="feature-icon">🔍</span>
                             <div>
                                 <strong>Automatická detekce</strong>
                                 <p>Zjistím strukturu vaší Tabidoo aplikace</p>
                             </div>
                         </div>
                         <div class="feature-item">
-                            <span class="feature-icon">🎯</span>
                             <div>
                                 <strong>Inteligentní mapování</strong>
                                 <p>Navrhu, jak pracovat s vašimi daty</p>
                             </div>
                         </div>
                         <div class="feature-item">
-                            <span class="feature-icon">⚡</span>
                             <div>
                                 <strong>Rychlé nastavení</strong>
                                 <p>Za 2 minuty budete moci začít používat asistenta</p>
@@ -92,7 +88,10 @@ class SetupWizard {
                     </div>
                 </div>
                 
-                <div class="wizard-actions">
+                <div class="wizard-actions start">
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit
+                    </button>
                     <button class="wizard-btn primary" onclick="setupWizard.nextStep()">
                         Začít nastavení
                     </button>
@@ -112,7 +111,7 @@ class SetupWizard {
                         </div>
                         <span class="progress-text">Krok 1 z 5</span>
                     </div>
-                    <h2>🔐 API přístupové údaje</h2>
+                    <h2>API přístupové údaje</h2>
                     <p>Potřebuji přístup k vaší Tabidoo aplikaci a OpenAI</p>
                 </div>
                 
@@ -120,7 +119,6 @@ class SetupWizard {
                     <div class="wizard-form">
                         <div class="form-group">
                             <label for="wizard-tabidoo-app-id">
-                                <span class="label-icon">📱</span>
                                 Tabidoo App ID
                             </label>
                             <input type="text" id="wizard-tabidoo-app-id" 
@@ -131,28 +129,26 @@ class SetupWizard {
                         
                         <div class="form-group">
                             <label for="wizard-tabidoo-token">
-                                <span class="label-icon">🔑</span>
                                 Tabidoo API Token
                             </label>
                             <div class="input-with-toggle">
                                 <input type="password" id="wizard-tabidoo-token" 
                                        placeholder="eyJ..." 
                                        value="${this.config.apiToken}">
-                                <button type="button" class="toggle-btn" onclick="this.togglePasswordVisibility('wizard-tabidoo-token')">👁️</button>
+                                <button type="button" class="toggle-btn" onclick="this.togglePasswordVisibility('wizard-tabidoo-token')">Zobrazit</button>
                             </div>
                             <small>Najdete v Tabidoo → Nastavení → API</small>
                         </div>
                         
                         <div class="form-group">
                             <label for="wizard-openai-key">
-                                <span class="label-icon">🤖</span>
                                 OpenAI API klíč
                             </label>
                             <div class="input-with-toggle">
                                 <input type="password" id="wizard-openai-key" 
                                        placeholder="sk-..." 
                                        value="${this.config.openaiKey}">
-                                <button type="button" class="toggle-btn" onclick="this.togglePasswordVisibility('wizard-openai-key')">👁️</button>
+                                <button type="button" class="toggle-btn" onclick="this.togglePasswordVisibility('wizard-openai-key')">Zobrazit</button>
                             </div>
                             <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
                         </div>
@@ -160,8 +156,8 @@ class SetupWizard {
                 </div>
                 
                 <div class="wizard-actions">
-                    <button class="wizard-btn secondary" onclick="setupWizard.prevStep()">
-                        Zpět
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit
                     </button>
                     <button class="wizard-btn primary" onclick="setupWizard.validateAndNext()">
                         Pokračovat
@@ -182,7 +178,7 @@ class SetupWizard {
                         </div>
                         <span class="progress-text">Krok 2 z 5</span>
                     </div>
-                    <h2>🔍 Analyza aplikace</h2>
+                    <h2>Analyza aplikace</h2>
                     <p>Zjišťuji strukturu vaší Tabidoo aplikace...</p>
                 </div>
                 
@@ -191,19 +187,22 @@ class SetupWizard {
                         <div class="spinner"></div>
                         <div class="loading-steps">
                             <div class="loading-step active" id="step-connect">
-                                <span class="step-icon">🔗</span>
                                 <span class="step-text">Připojuji se k Tabidoo API</span>
                             </div>
                             <div class="loading-step" id="step-tables">
-                                <span class="step-icon">📊</span>
                                 <span class="step-text">Načítám seznam tabulek</span>
                             </div>
                             <div class="loading-step" id="step-analyze">
-                                <span class="step-icon">🤖</span>
                                 <span class="step-text">Analyzuji strukturu dat</span>
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="wizard-actions center">
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit
+                    </button>
                 </div>
             </div>
         `;
@@ -223,7 +222,7 @@ class SetupWizard {
                         </div>
                         <span class="progress-text">Krok 3 z 5</span>
                     </div>
-                    <h2>📊 Nalezené tabulky</h2>
+                    <h2>Nalezené tabulky</h2>
                     <p>Našel jsem tyto tabulky ve vaší aplikaci. Vyberte, které chcete použít:</p>
                 </div>
                 
@@ -239,8 +238,8 @@ class SetupWizard {
                                 </div>
                                 <div class="table-card-content">
                                     <div class="table-stats">
-                                        <span class="stat">📋 ${table.recordCount} záznamů</span>
-                                        <span class="stat">🏷️ ${table.fieldCount} polí</span>
+                                        <span class="stat">${table.recordCount} záznamů</span>
+                                        <span class="stat">${table.fieldCount} polí</span>
                                     </div>
                                     <div class="table-fields">
                                         <strong>Hlavní pole:</strong>
@@ -258,8 +257,8 @@ class SetupWizard {
                 </div>
                 
                 <div class="wizard-actions">
-                    <button class="wizard-btn secondary" onclick="setupWizard.prevStep()">
-                        Zpět
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit
                     </button>
                     <button class="wizard-btn primary" onclick="setupWizard.nextStep()" 
                             ${this.getSelectedTablesCount() === 0 ? 'disabled' : ''}>
@@ -283,7 +282,7 @@ class SetupWizard {
                         </div>
                         <span class="progress-text">Krok 4 z 5</span>
                     </div>
-                    <h2>🎯 Mapování entit</h2>
+                    <h2>Mapování entit</h2>
                     <p>Pomozte mi pochopit, co jednotlivé tabulky reprezentují:</p>
                 </div>
                 
@@ -305,7 +304,6 @@ class SetupWizard {
                                                     <input type="radio" name="entity-${index}" value="${option.value}"
                                                            ${option.selected ? 'checked' : ''}
                                                            onchange="setupWizard.setEntityType(${index}, '${option.value}')">
-                                                    <span class="option-icon">${option.icon}</span>
                                                     <span class="option-text">${option.label}</span>
                                                 </label>
                                             `).join('')}
@@ -327,8 +325,8 @@ class SetupWizard {
                 </div>
                 
                 <div class="wizard-actions">
-                    <button class="wizard-btn secondary" onclick="setupWizard.prevStep()">
-                        Zpět
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit
                     </button>
                     <button class="wizard-btn primary" onclick="setupWizard.nextStep()">
                         Pokračovat
@@ -349,7 +347,7 @@ class SetupWizard {
                         </div>
                         <span class="progress-text">Krok 5 z 5</span>
                     </div>
-                    <h2>🎯 Příklady dotazů</h2>
+                    <h2>Příklady dotazů</h2>
                     <p>Vygeneroval jsem příklady dotazů pro vaši aplikaci. Můžete je upravit:</p>
                 </div>
                 
@@ -359,9 +357,6 @@ class SetupWizard {
                             ${this.config.exampleQueries.map((example, index) => `
                                 <div class="example-card">
                                     <div class="example-header">
-                                        <input type="text" class="icon-input" value="${example.icon}" 
-                                               onchange="setupWizard.updateExample(${index}, 'icon', this.value)"
-                                               maxlength="2">
                                         <button class="remove-btn" onclick="setupWizard.removeExample(${index})">×</button>
                                     </div>
                                     <textarea class="example-text" 
@@ -371,7 +366,6 @@ class SetupWizard {
                             `).join('')}
                             
                             <div class="example-card add-new" onclick="setupWizard.addExample()">
-                                <div class="add-icon">+</div>
                                 <div class="add-text">Přidat příklad</div>
                             </div>
                         </div>
@@ -379,8 +373,8 @@ class SetupWizard {
                 </div>
                 
                 <div class="wizard-actions">
-                    <button class="wizard-btn secondary" onclick="setupWizard.prevStep()">
-                        Zpět
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit
                     </button>
                     <button class="wizard-btn primary" onclick="setupWizard.completeSetup()">
                         Dokončit nastavení
@@ -395,7 +389,6 @@ class SetupWizard {
         container.innerHTML = `
             <div class="wizard-container">
                 <div class="wizard-header">
-                    <div class="success-icon">✅</div>
                     <h2>Nastavení dokončeno!</h2>
                     <p>Váš Tabidoo CRM Asistent je připraven k použití</p>
                 </div>
@@ -403,7 +396,6 @@ class SetupWizard {
                 <div class="wizard-content">
                     <div class="completion-summary">
                         <div class="summary-item">
-                            <span class="summary-icon">📊</span>
                             <div>
                                 <strong>${this.getSelectedTablesCount()} tabulek nakonfigurováno</strong>
                                 <p>${this.detectedTables.filter(t => t.selected).map(t => t.name).join(', ')}</p>
@@ -411,7 +403,6 @@ class SetupWizard {
                         </div>
                         
                         <div class="summary-item">
-                            <span class="summary-icon">🎯</span>
                             <div>
                                 <strong>${this.config.exampleQueries.length} příkladů dotazů</strong>
                                 <p>Připravených pro rychlé použití</p>
@@ -419,7 +410,6 @@ class SetupWizard {
                         </div>
                         
                         <div class="summary-item">
-                            <span class="summary-icon">🚀</span>
                             <div>
                                 <strong>Hybridní systém aktivní</strong>
                                 <p>Rychlé lokální vyhledávání + AI komunikace</p>
@@ -428,9 +418,9 @@ class SetupWizard {
                     </div>
                 </div>
                 
-                <div class="wizard-actions">
+                <div class="wizard-actions center">
                     <button class="wizard-btn primary large" onclick="setupWizard.startUsingApp()">
-                        🎉 Začít používat asistenta
+                        Začít používat asistenta
                     </button>
                 </div>
             </div>
@@ -441,7 +431,14 @@ class SetupWizard {
 
     togglePasswordVisibility(inputId) {
         const input = document.getElementById(inputId);
-        input.type = input.type === 'password' ? 'text' : 'password';
+        const button = input.nextElementSibling;
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = 'Skrýt';
+        } else {
+            input.type = 'password';
+            button.textContent = 'Zobrazit';
+        }
     }
 
     async validateAndNext() {
@@ -515,7 +512,15 @@ class SetupWizard {
         } catch (error) {
             console.error('Error loading Tabidoo data:', error);
             alert('Chyba při načítání dat: ' + error.message);
-            this.prevStep();
+            // Přidat možnost zrušit i při chybě
+            const container = document.getElementById('chat-messages');
+            container.innerHTML += `
+                <div class="wizard-actions center" style="margin-top: 20px;">
+                    <button class="wizard-btn cancel" onclick="cancelSetupWizard()">
+                        Zrušit a vrátit se zpět
+                    </button>
+                </div>
+            `;
         }
     }
 
@@ -626,13 +631,13 @@ class SetupWizard {
 
     getEntityOptions(table) {
         const options = [
-            { value: 'company', icon: '🏢', label: 'Firmy/Společnosti' },
-            { value: 'contact', icon: '👥', label: 'Kontakty/Osoby' },
-            { value: 'deal', icon: '💼', label: 'Obchody/Prodeje' },
-            { value: 'activity', icon: '📋', label: 'Aktivity/Úkoly' },
-            { value: 'project', icon: '🚀', label: 'Projekty' },
-            { value: 'product', icon: '📦', label: 'Produkty' },
-            { value: 'other', icon: '📊', label: 'Jiné' }
+            { value: 'company', label: 'Firmy/Společnosti' },
+            { value: 'contact', label: 'Kontakty/Osoby' },
+            { value: 'deal', label: 'Obchody/Prodeje' },
+            { value: 'activity', label: 'Aktivity/Úkoly' },
+            { value: 'project', label: 'Projekty' },
+            { value: 'product', label: 'Produkty' },
+            { value: 'other', label: 'Jiné' }
         ];
 
         return options.map(option => ({
@@ -669,13 +674,11 @@ class SetupWizard {
 
             // Přidat příklad počítání
             this.config.exampleQueries.push({
-                icon: '📊',
                 text: `Kolik ${firstKeyword} je v systému?`
             });
 
             // Přidat příklad výpisu
             this.config.exampleQueries.push({
-                icon: '📋',
                 text: `Vypiš všechny ${firstKeyword.replace('ů', 'y').replace('í', 'e')}`
             });
         }
@@ -683,7 +686,6 @@ class SetupWizard {
         // Přidat obecné příklady
         if (this.config.exampleQueries.length < 6) {
             this.config.exampleQueries.push({
-                icon: '🔍',
                 text: 'Najdi záznam XYZ'
             });
         }
@@ -705,7 +707,6 @@ class SetupWizard {
 
     addExample() {
         this.config.exampleQueries.push({
-            icon: '💬',
             text: 'Nový příklad dotazu'
         });
         this.showStep(5); // Refresh
