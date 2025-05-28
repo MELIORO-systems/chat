@@ -186,6 +186,53 @@
             }
         }
         
+        // Enhanced toggleSettings to ensure footer buttons are added
+        const originalToggleSettings = window.toggleSettings;
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            const isHidden = panel.style.display === 'none' || !panel.style.display;
+            
+            if (isHidden) {
+                panel.style.display = 'block';
+                
+                // Ensure footer buttons exist when opening settings
+                setTimeout(() => {
+                    ensureSettingsFooterButtons();
+                }, 100);
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        // Function to ensure settings footer buttons exist
+        function ensureSettingsFooterButtons() {
+            let settingsFooter = document.querySelector('.settings-footer');
+            
+            if (!settingsFooter) {
+                // Create settings footer if it doesn't exist
+                const securityInfo = document.querySelector('.security-info');
+                if (securityInfo) {
+                    settingsFooter = document.createElement('div');
+                    settingsFooter.className = 'settings-footer';
+                    securityInfo.parentNode.insertBefore(settingsFooter, securityInfo);
+                }
+            }
+            
+            if (settingsFooter && settingsFooter.children.length === 0) {
+                // Add buttons if footer is empty
+                settingsFooter.innerHTML = `
+                    <button onclick="startSetupWizard()" class="link-btn">Nastavení nové aplikace</button>
+                    <button onclick="exportConfig()" class="link-btn">Export konfigurace</button>
+                    <button onclick="importConfig()" class="link-btn">Import konfigurace</button>
+                    <button onclick="clearAllData()" class="link-btn danger">Vymazat vše</button>
+                `;
+                console.log('✅ Settings footer buttons added');
+            }
+        }
+        
+        // Override toggleSettings globally
+        window.toggleSettings = toggleSettings;
+        
         function clearAllData() {
             if (confirm('Opravdu chcete vymazat všechna data včetně API klíčů?\n\nTato akce je nevratná!')) {
                 localStorage.clear();
@@ -461,18 +508,24 @@
                 console.log('✅ CONFIG loaded');
             }
             
-            // Check if settings footer buttons are visible
-            const settingsFooter = document.querySelector('.settings-footer');
-            if (settingsFooter) {
-                const buttons = settingsFooter.querySelectorAll('.link-btn');
-                console.log('✅ Settings footer found with', buttons.length, 'buttons');
-                buttons.forEach((btn, index) => {
-                    console.log(`  Button ${index + 1}:`, btn.textContent);
-                });
-            } else {
-                console.warn('⚠️ Settings footer not found');
+            // Force ensure settings footer exists (even when panel is hidden)
+            ensureSettingsFooterButtons();
+            
+            // Check if settings footer buttons are now visible (they might be hidden due to display:none)
+            const settingsPanel = document.getElementById('settings-panel');
+            if (settingsPanel) {
+                const settingsFooter = settingsPanel.querySelector('.settings-footer');
+                if (settingsFooter) {
+                    const buttons = settingsFooter.querySelectorAll('.link-btn');
+                    console.log('✅ Settings footer found with', buttons.length, 'buttons');
+                    buttons.forEach((btn, index) => {
+                        console.log(`  Button ${index + 1}:`, btn.textContent);
+                    });
+                } else {
+                    console.warn('⚠️ Settings footer still not found, will be created when settings are opened');
+                }
             }
-        }, 1000);
+        }, 2000); // Wait longer for all scripts to load
     </script>
 </body>
 </html>
