@@ -376,38 +376,38 @@
         // === ENHANCED WIZARD FUNCTIONS ===
         
         // Override startSetupWizard to add cancel functionality and close settings
-        const originalStartSetupWizard = window.startSetupWizard;
-        if (originalStartSetupWizard) {
+        function createStartSetupWizardWrapper() {
+            const originalStartSetupWizard = window.startSetupWizard;
+            
             window.startSetupWizard = function() {
-                // Close settings panel first
+                console.log('🧙‍♂️ Starting wizard with settings closure');
+                
+                // FORCE close settings panel
                 const settingsPanel = document.getElementById('settings-panel');
-                if (settingsPanel && settingsPanel.style.display !== 'none') {
+                if (settingsPanel) {
                     settingsPanel.style.display = 'none';
+                    console.log('Settings panel closed');
                 }
                 
                 // Store reference that wizard was started from settings
                 sessionStorage.setItem('wizardStartedFromSettings', 'true');
-                return originalStartSetupWizard();
-            };
-        } else {
-            // If original function doesn't exist yet, create wrapper
-            window.startSetupWizard = function() {
-                // Close settings panel first
-                const settingsPanel = document.getElementById('settings-panel');
-                if (settingsPanel && settingsPanel.style.display !== 'none') {
-                    settingsPanel.style.display = 'none';
-                }
                 
-                sessionStorage.setItem('wizardStartedFromSettings', 'true');
-                
-                // Try to call the wizard if it exists
-                if (typeof setupWizard !== 'undefined' && setupWizard.start) {
-                    setupWizard.start();
+                // Call original function if exists
+                if (originalStartSetupWizard && typeof originalStartSetupWizard === 'function') {
+                    return originalStartSetupWizard();
+                } else if (typeof setupWizard !== 'undefined' && setupWizard.start) {
+                    return setupWizard.start();
                 } else {
+                    console.error('Setup wizard not available');
                     alert('Průvodce nastavením není dostupný. Zkuste obnovit stránku.');
                 }
             };
         }
+        
+        // Apply wrapper immediately and after delay
+        createStartSetupWizardWrapper();
+        setTimeout(createStartSetupWizardWrapper, 2000);
+        setTimeout(createStartSetupWizardWrapper, 5000);
         
         // Add cancel wizard function
         function cancelSetupWizard() {
