@@ -187,50 +187,69 @@
         }
         
         // Enhanced toggleSettings to ensure footer buttons are added
-        const originalToggleSettings = window.toggleSettings;
         function toggleSettings() {
             const panel = document.getElementById('settings-panel');
+            if (!panel) {
+                console.error('Settings panel not found!');
+                return;
+            }
+            
             const isHidden = panel.style.display === 'none' || !panel.style.display;
             
             if (isHidden) {
                 panel.style.display = 'block';
                 
-                // Ensure footer buttons exist when opening settings
+                // FORCE create footer buttons every time settings open
                 setTimeout(() => {
-                    ensureSettingsFooterButtons();
-                }, 100);
+                    forceCreateSettingsFooter();
+                }, 50);
             } else {
                 panel.style.display = 'none';
             }
         }
         
-        // Function to ensure settings footer buttons exist
-        function ensureSettingsFooterButtons() {
-            let settingsFooter = document.querySelector('.settings-footer');
+        // Function to FORCE create settings footer buttons
+        function forceCreateSettingsFooter() {
+            const panel = document.getElementById('settings-panel');
+            if (!panel) return;
             
-            if (!settingsFooter) {
-                // Create settings footer if it doesn't exist
-                const securityInfo = document.querySelector('.security-info');
-                if (securityInfo) {
-                    settingsFooter = document.createElement('div');
-                    settingsFooter.className = 'settings-footer';
-                    securityInfo.parentNode.insertBefore(settingsFooter, securityInfo);
-                }
+            // Remove existing footer if it exists
+            let existingFooter = panel.querySelector('.settings-footer');
+            if (existingFooter) {
+                existingFooter.remove();
             }
             
-            if (settingsFooter && settingsFooter.children.length === 0) {
-                // Add buttons if footer is empty
-                settingsFooter.innerHTML = `
-                    <button onclick="startSetupWizard()" class="link-btn">Nastavení nové aplikace</button>
-                    <button onclick="exportConfig()" class="link-btn">Export konfigurace</button>
-                    <button onclick="importConfig()" class="link-btn">Import konfigurace</button>
-                    <button onclick="clearAllData()" class="link-btn danger">Vymazat vše</button>
-                `;
-                console.log('✅ Settings footer buttons added');
+            // Find security info or create insertion point
+            let securityInfo = panel.querySelector('.security-info');
+            
+            // Create new footer
+            const footer = document.createElement('div');
+            footer.className = 'settings-footer';
+            footer.innerHTML = `
+                <button onclick="startSetupWizard(); toggleSettings();" class="link-btn">Nastavení nové aplikace</button>
+                <button onclick="exportConfig()" class="link-btn">Export konfigurace</button>
+                <button onclick="importConfig()" class="link-btn">Import konfigurace</button>
+                <button onclick="clearAllData()" class="link-btn danger">Vymazat vše</button>
+            `;
+            
+            if (securityInfo) {
+                // Insert before security info
+                securityInfo.parentNode.insertBefore(footer, securityInfo);
+            } else {
+                // Just append to panel
+                panel.appendChild(footer);
+                
+                // Also create security info if it doesn't exist
+                const securityDiv = document.createElement('div');
+                securityDiv.className = 'security-info';
+                securityDiv.textContent = 'Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.';
+                panel.appendChild(securityDiv);
             }
+            
+            console.log('🔧 Settings footer forcefully created');
         }
         
-        // Override toggleSettings globally
+        // Override toggleSettings globally IMMEDIATELY
         window.toggleSettings = toggleSettings;
         
         function clearAllData() {
@@ -356,20 +375,44 @@
         
         // === ENHANCED WIZARD FUNCTIONS ===
         
-        // Override startSetupWizard to add cancel functionality
+        // Override startSetupWizard to add cancel functionality and close settings
         const originalStartSetupWizard = window.startSetupWizard;
         if (originalStartSetupWizard) {
             window.startSetupWizard = function() {
-                // Store reference that wizard was started from menu
-                sessionStorage.setItem('wizardStartedFromMenu', 'true');
+                // Close settings panel first
+                const settingsPanel = document.getElementById('settings-panel');
+                if (settingsPanel && settingsPanel.style.display !== 'none') {
+                    settingsPanel.style.display = 'none';
+                }
+                
+                // Store reference that wizard was started from settings
+                sessionStorage.setItem('wizardStartedFromSettings', 'true');
                 return originalStartSetupWizard();
+            };
+        } else {
+            // If original function doesn't exist yet, create wrapper
+            window.startSetupWizard = function() {
+                // Close settings panel first
+                const settingsPanel = document.getElementById('settings-panel');
+                if (settingsPanel && settingsPanel.style.display !== 'none') {
+                    settingsPanel.style.display = 'none';
+                }
+                
+                sessionStorage.setItem('wizardStartedFromSettings', 'true');
+                
+                // Try to call the wizard if it exists
+                if (typeof setupWizard !== 'undefined' && setupWizard.start) {
+                    setupWizard.start();
+                } else {
+                    alert('Průvodce nastavením není dostupný. Zkuste obnovit stránku.');
+                }
             };
         }
         
         // Add cancel wizard function
         function cancelSetupWizard() {
             if (confirm('Opravdu chcete zrušit průvodce nastavením?')) {
-                sessionStorage.removeItem('wizardStartedFromMenu');
+                sessionStorage.removeItem('wizardStartedFromSettings');
                 // Return to normal state
                 if (typeof showWelcomeScreen === 'function') {
                     showWelcomeScreen();
@@ -445,6 +488,9 @@
             loadAppTheme();
             setupAutoResize();
             
+            // Override toggleSettings immediately
+            window.toggleSettings = toggleSettings;
+            
             // Start protection and force correct welcome screen
             setTimeout(() => {
                 startWelcomeScreenProtection();
@@ -459,10 +505,17 @@
             setTimeout(() => {
                 loadAppTheme();
                 setupAutoResize();
+                window.toggleSettings = toggleSettings;
                 startWelcomeScreenProtection();
                 forceCorrectWelcomeScreen();
             }, 200);
         }
+        
+        // ALSO override toggleSettings after all scripts load
+        setTimeout(() => {
+            window.toggleSettings = toggleSettings;
+            console.log('🔧 toggleSettings override applied');
+        }, 3000);
         
         // AGGRESSIVE override - keep overriding the function every 100ms for 2 seconds
         let overrideAttempts = 0;
@@ -489,7 +542,7 @@
         // === COMPATIBILITY CHECKS ===
         setTimeout(() => {
             const requiredFunctions = [
-                'sendMessage', 'toggleSettings', 'saveSettings', 
+                'sendMessage', 'saveSettings', 
                 'refreshData', 'startSetupWizard', 'exportConfig', 
                 'importConfig'
             ];
@@ -508,24 +561,23 @@
                 console.log('✅ CONFIG loaded');
             }
             
-            // Force ensure settings footer exists (even when panel is hidden)
-            ensureSettingsFooterButtons();
-            
-            // Check if settings footer buttons are now visible (they might be hidden due to display:none)
+            // Check current state
             const settingsPanel = document.getElementById('settings-panel');
             if (settingsPanel) {
-                const settingsFooter = settingsPanel.querySelector('.settings-footer');
-                if (settingsFooter) {
-                    const buttons = settingsFooter.querySelectorAll('.link-btn');
-                    console.log('✅ Settings footer found with', buttons.length, 'buttons');
-                    buttons.forEach((btn, index) => {
-                        console.log(`  Button ${index + 1}:`, btn.textContent);
-                    });
-                } else {
-                    console.warn('⚠️ Settings footer still not found, will be created when settings are opened');
-                }
+                console.log('✅ Settings panel found');
+                console.log('💡 To see footer buttons, click "Nastavení" in the menu');
+            } else {
+                console.warn('⚠️ Settings panel not found');
             }
-        }, 2000); // Wait longer for all scripts to load
+            
+            // Confirm toggleSettings override
+            if (window.toggleSettings === toggleSettings) {
+                console.log('✅ toggleSettings successfully overridden');
+            } else {
+                console.warn('⚠️ toggleSettings override failed, trying again...');
+                window.toggleSettings = toggleSettings;
+            }
+        }, 4000); // Wait even longer for all scripts to load
     </script>
 </body>
 </html>
