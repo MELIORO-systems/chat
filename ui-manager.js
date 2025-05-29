@@ -101,20 +101,7 @@ class UIManager {
     
     // Nastavit event listenery
     setupEventListeners() {
-        // Theme selector clicks - ZŮSTÁVÁ BEZ ZMĚNY (HTML onclick odstraněny)
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('theme-option')) {
-                const themeKey = Array.from(e.target.classList)
-                    .find(cls => cls.startsWith('theme-'))
-                    ?.replace('theme-', '');
-                
-                if (themeKey) {
-                    this.setTheme(themeKey);
-                }
-            }
-        });
-        
-        // Keyboard shortcuts for themes
+        // Keyboard shortcuts for themes (zachováno)
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.altKey) {
                 switch (e.key) {
