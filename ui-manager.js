@@ -42,7 +42,7 @@ class UIManager {
         this.setTheme(savedTheme);
     }
     
-    // Nastavit téma
+    // Nastavit téma - OPRAVENO: aplikovat CSS třídu pro všechna témata
     setTheme(themeKey) {
         if (!this.themes[themeKey]) {
             console.warn(`Theme ${themeKey} not found, using claude`);
@@ -52,10 +52,8 @@ class UIManager {
         // Odstranit všechny theme třídy
         document.body.classList.remove('theme-claude', 'theme-google', 'theme-replit');
         
-        // Přidat třídu pro nové téma (kromě výchozího claude)
-        if (themeKey !== 'claude') {
-            document.body.classList.add(`theme-${themeKey}`);
-        }
+        // Přidat třídu pro vybrané téma (včetně claude)
+        document.body.classList.add(`theme-${themeKey}`);
         
         // Uložit do localStorage
         localStorage.setItem('selectedAppTheme', themeKey);
@@ -101,7 +99,7 @@ class UIManager {
     
     // Nastavit event listenery
     setupEventListeners() {
-        // Theme selector clicks
+        // Theme selector clicks - ZŮSTÁVÁ BEZ ZMĚNY (HTML onclick odstraněny)
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('theme-option')) {
                 const themeKey = Array.from(e.target.classList)
@@ -432,8 +430,13 @@ class UIManager {
         diagnosticArea.scrollTop = diagnosticArea.scrollHeight;
     }
     
-    // Inicializace UI - OPRAVENO
+    // Inicializace UI - OPRAVENO: zabránit dvojí inicializaci
     initialize() {
+        if (this.initialized) {
+            console.log('🎨 UI Manager already initialized, skipping...');
+            return;
+        }
+        
         console.log('🎨 UI Manager initializing...');
         
         // Základní inicializace
@@ -453,6 +456,7 @@ class UIManager {
             }
         }, 100);
         
+        this.initialized = true;
         console.log('🎨 UI Manager ready');
     }
     
@@ -505,14 +509,23 @@ if (typeof window !== 'undefined') {
     window.uiManager = uiManager;
 }
 
+// OPRAVENO: Zabránit dvojí inicializaci
+let uiManagerInitialized = false;
+
 // Inicializace při načtení DOM
 document.addEventListener('DOMContentLoaded', () => {
-    uiManager.initialize();
+    if (!uiManagerInitialized) {
+        uiManager.initialize();
+        uiManagerInitialized = true;
+    }
 });
 
 // Fallback pro už načtený DOM
-if (document.readyState !== 'loading') {
+if (document.readyState !== 'loading' && !uiManagerInitialized) {
     setTimeout(() => {
-        uiManager.initialize();
+        if (!uiManagerInitialized) {
+            uiManager.initialize();
+            uiManagerInitialized = true;
+        }
     }, 100);
 }
