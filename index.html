@@ -12,10 +12,13 @@
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-content">
-                <h1>My Connect AI</h1>
+                <h1><a href="#" onclick="location.reload(); return false;" class="header-logo-link">My Connect AI</a></h1>
                 <div class="header-subtitle">Hybridní AI Connect systém je připraven k použití</div>
             </div>
             <div class="header-buttons">
+                <button class="index-button" onclick="showWelcomeScreen()" title="Zpět na úvodní stranu">
+                    Index
+                </button>
                 <div class="dropdown">
                     <button class="menu-button" onclick="toggleMainMenu()">
                         Menu
@@ -110,7 +113,7 @@
         <!-- NOVÁ PATIČKA -->
         <div class="app-footer">
             <div class="footer-content">
-                <span class="footer-text">Powered by <strong>MELIORO Systems</strong></span>
+                <span class="footer-text">Powered by <a href="http://melioro.cz" target="_blank" rel="noopener noreferrer" class="footer-link"><strong>MELIORO Systems</strong></a></span>
                 <span class="footer-domain">myconnectai.online</span>
             </div>
         </div>
