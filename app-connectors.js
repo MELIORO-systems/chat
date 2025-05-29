@@ -208,4 +208,206 @@ class AppConnectorsManager {
         for (const table of tables) {
             try {
                 const dataResponse = await fetch(
-                    `${this.
+                    `${this.connectors.tabidoo.apiBaseUrl}/apps/${appId}/tables/${table.id}/data?limit=${options.limit || 100}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${apiToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                if (dataResponse.ok) {
+                    const data = await dataResponse.json();
+                    tablesData[table.id] = {
+                        name: table.name || table.id,
+                        data: data
+                    };
+                    
+                    console.log(`✓ Načtena tabulka ${table.name}: ${this.getRecordCount(data)} záznamů`);
+                } else {
+                    console.warn(`⚠ Nelze načíst tabulku ${table.name}`);
+                }
+            } catch (error) {
+                console.error(`✗ Chyba při načítání tabulky ${table.name}:`, error);
+            }
+        }
+        
+        return tablesData;
+    }
+    
+    // Pomocná funkce pro počítání záznamů
+    getRecordCount(data) {
+        if (Array.isArray(data)) {
+            return data.length;
+        } else if (data?.items && Array.isArray(data.items)) {
+            return data.items.length;
+        } else if (data?.data && Array.isArray(data.data)) {
+            return data.data.length;
+        } else if (data?.records && Array.isArray(data.records)) {
+            return data.records.length;
+        }
+        return 0;
+    }
+    
+    // Odpojit konektor
+    async disconnectConnector(connectorKey) {
+        const connector = this.getConnector(connectorKey);
+        if (!connector) {
+            throw new Error(`Konektor ${connectorKey} neexistuje`);
+        }
+        
+        switch (connectorKey) {
+            case 'tabidoo':
+                security.saveSecure('tabidoo_app_id', '');
+                security.saveSecure('tabidoo_token', '');
+                this.connectors.tabidoo.status = 'disconnected';
+                break;
+            default:
+                throw new Error(`Odpojení ${connectorKey} není implementováno`);
+        }
+        
+        console.log(`🔌 Konektor ${connectorKey} odpojen`);
+        return { success: true };
+    }
+    
+    // Získat status všech konektorů
+    getConnectionStatus() {
+        const status = {};
+        Object.keys(this.connectors).forEach(key => {
+            const connector = this.connectors[key];
+            status[key] = {
+                name: connector.name,
+                status: connector.status,
+                enabled: connector.enabled
+            };
+        });
+        return status;
+    }
+    
+    // Aktualizovat status konektoru
+    updateConnectorStatus(connectorKey, status) {
+        if (this.connectors[connectorKey]) {
+            this.connectors[connectorKey].status = status;
+            
+            // Aktualizovat UI pokud existuje
+            if (typeof updateAppStatus === 'function') {
+                const statusText = this.getStatusText(status);
+                updateAppStatus(connectorKey, statusText);
+            }
+        }
+    }
+    
+    // Převést status na text
+    getStatusText(status) {
+        const statusMap = {
+            'connected': 'Připojeno',
+            'disconnected': 'Nepřipojeno',
+            'connecting': 'Připojování...',
+            'error': 'Chyba',
+            'coming_soon': 'Připravujeme'
+        };
+        return statusMap[status] || status;
+    }
+    
+    // Získat informace o konektoru pro nastavení
+    getConnectorSettingsInfo(connectorKey) {
+        const connector = this.getConnector(connectorKey);
+        if (!connector) return null;
+        
+        return {
+            name: connector.name,
+            description: connector.description,
+            icon: connector.icon,
+            status: connector.status,
+            statusText: this.getStatusText(connector.status),
+            enabled: connector.enabled,
+            setupUrl: connector.setupUrl,
+            documentationUrl: connector.documentationUrl,
+            requiredFields: connector.requiredFields || []
+        };
+    }
+    
+    // Export konfigurace všech konektorù
+    exportConfiguration() {
+        const config = {};
+        
+        Object.keys(this.connectors).forEach(key => {
+            const connector = this.connectors[key];
+            if (connector.enabled && connector.status === 'connected') {
+                config[key] = {
+                    name: connector.name,
+                    status: connector.status,
+                    // Neexportujeme citlivé údaje
+                    hasConfiguration: true
+                };
+            }
+        });
+        
+        return config;
+    }
+    
+    // Diagnostika připojení
+    async runDiagnostics() {
+        const results = {};
+        
+        for (const [key, connector] of Object.entries(this.connectors)) {
+            if (!connector.enabled) {
+                results[key] = {
+                    name: connector.name,
+                    status: 'disabled',
+                    message: 'Konektor není aktivní'
+                };
+                continue;
+            }
+            
+            try {
+                switch (key) {
+                    case 'tabidoo':
+                        const appId = security.loadSecure('tabidoo_app_id');
+                        const apiToken = security.loadSecure('tabidoo_token');
+                        
+                        if (!appId || !apiToken) {
+                            results[key] = {
+                                name: connector.name,
+                                status: 'not_configured',
+                                message: 'Chybí konfigurace'
+                            };
+                        } else {
+                            const testResult = await this.testTabidooConnection(appId, apiToken);
+                            results[key] = {
+                                name: connector.name,
+                                status: testResult.success ? 'ok' : 'error',
+                                message: testResult.success ? 
+                                    `Připojeno k aplikaci: ${testResult.appName}` : 
+                                    testResult.error
+                            };
+                        }
+                        break;
+                    default:
+                        results[key] = {
+                            name: connector.name,
+                            status: 'coming_soon',
+                            message: 'Připravujeme'
+                        };
+                }
+            } catch (error) {
+                results[key] = {
+                    name: connector.name,
+                    status: 'error',
+                    message: error.message
+                };
+            }
+        }
+        
+        return results;
+    }
+}
+
+// Globální instance
+const appConnectorsManager = new AppConnectorsManager();
+
+// Export pro ostatní moduly
+if (typeof window !== 'undefined') {
+    window.appConnectorsManager = appConnectorsManager;
+}
