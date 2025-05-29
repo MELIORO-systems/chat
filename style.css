@@ -259,7 +259,7 @@ body {
     background: var(--background);
     border-bottom: 1px solid var(--border);
     padding: 2rem;
-    max-height: 70vh;
+    max-height: 80vh;
     overflow-y: auto;
 }
 
@@ -267,9 +267,181 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
+    margin-bottom: 2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* === SETTINGS BLOCKS === */
+.settings-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: all 0.2s ease;
+}
+
+.settings-block:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.block-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.block-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--border);
+}
+
+/* === AI MODEL SETTINGS === */
+.ai-model-settings {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+/* === APP CONNECTORS === */
+.app-connector {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    background: var(--background);
+    transition: all 0.2s ease;
+}
+
+.app-connector:hover {
+    border-color: var(--primary-color);
+}
+
+.app-connector.future-connector {
+    opacity: 0.6;
+}
+
+.app-connector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+}
+
+.app-connector-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.app-connector-info strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.app-connector-status {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.app-connector-status.připojeno {
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.app-connector-status.nepřipojeno {
+    background: rgba(107, 107, 107, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+.app-connector-status.připravujeme {
+    background: rgba(234, 179, 8, 0.1);
+    color: var(--warning-color);
+    border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.app-connector-toggle {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.app-connector-toggle:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.app-connector-toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.app-connector-settings {
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+/* === CONFIG ACTIONS === */
+.config-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.config-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.config-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.config-btn.danger {
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.config-btn.danger:hover {
+    background: var(--error-color);
+    border-color: var(--error-color);
 }
 
 .settings-section {
@@ -863,14 +1035,28 @@ body {
         font-size: 0.8rem;
     }
     
-    .menu-button {
+    .menu-button, .index-button {
         padding: 0.625rem 1rem;
         font-size: 0.8rem;
     }
     
     .settings-panel {
         padding: 1.5rem;
-        max-height: 80vh;
+        max-height: 85vh;
+    }
+    
+    .settings-block {
+        padding: 1rem;
+    }
+    
+    .config-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .app-connector-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
     }
     
     .chat-messages {
@@ -915,6 +1101,19 @@ body {
     
     .theme-selector {
         justify-content: center;
+    }
+    
+    .settings-block {
+        padding: 0.75rem;
+    }
+    
+    .block-title {
+        font-size: 1rem;
+    }
+    
+    .config-actions {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 }
 
