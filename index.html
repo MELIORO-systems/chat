@@ -73,7 +73,7 @@
                         <label for="openai-key">OpenAI API klíč</label>
                         <div class="input-group">
                             <input type="password" id="openai-key" placeholder="sk-...">
-                            <button onclick="uiManager.toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
+                            <button onclick="if(uiManager) uiManager.toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
                         </div>
                         <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
                     </div>
@@ -85,7 +85,7 @@
                         <label for="gemini-key">Google Gemini API klíč</label>
                         <div class="input-group">
                             <input type="password" id="gemini-key" placeholder="AIza...">
-                            <button onclick="uiManager.toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
+                            <button onclick="if(uiManager) uiManager.toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
                         </div>
                         <small>Získejte na <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></small>
                     </div>
@@ -97,7 +97,7 @@
                         <label for="claude-key">Anthropic Claude API klíč</label>
                         <div class="input-group">
                             <input type="password" id="claude-key" placeholder="sk-ant-...">
-                            <button onclick="uiManager.toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
+                            <button onclick="if(uiManager) uiManager.toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
                         </div>
                         <small>Získejte na <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
                     </div>
@@ -116,7 +116,7 @@
                             <strong>Tabidoo CRM</strong>
                             <span class="app-connector-status" id="tabidoo-status">Nepřipojeno</span>
                         </div>
-                        <button class="app-connector-toggle" onclick="uiManager.toggleAppConnector('tabidoo')">Nastavit</button>
+                        <button class="app-connector-toggle" onclick="if(uiManager) uiManager.toggleAppConnector('tabidoo')">Nastavit</button>
                     </div>
                     
                     <div id="tabidoo-connector" class="app-connector-settings" style="display: none;">
@@ -130,7 +130,7 @@
                             <label for="tabidoo-token">API Token</label>
                             <div class="input-group">
                                 <input type="password" id="tabidoo-token" placeholder="eyJ...">
-                                <button onclick="uiManager.toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
+                                <button onclick="if(uiManager) uiManager.toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
                             </div>
                             <small>Najdete v Tabidoo → Nastavení → API</small>
                         </div>
@@ -224,27 +224,29 @@
         </div>
     </div>
 
-    <!-- SKRIPTY - Modulární struktura -->
+    <!-- SKRIPTY - Modulární struktura v správném pořadí -->
     
-    <!-- Základní moduly -->
+    <!-- 1. Základní moduly -->
     <script src="security.js"></script>
     <script src="config.js"></script>
     
-    <!-- Nové moduly pro rozšíření -->
+    <!-- 2. Nové specializované moduly -->
     <script src="ai-models.js"></script>
     <script src="app-connectors.js"></script>
     <script src="ui-manager.js"></script>
     <script src="settings-manager.js"></script>
     
-    <!-- Funkční moduly -->
+    <!-- 3. Funkční moduly -->
     <script src="display.js"></script>
     <script src="data-loader.js"></script>
     <script src="local-search.js"></script>
     <script src="query-processor.js"></script>
+    
+    <!-- 4. Wizard moduly -->
     <script src="setup-wizard.js"></script>
     <script src="wizard-integration.js"></script>
     
-    <!-- Hlavní aplikační logika -->
+    <!-- 5. Hlavní aplikační logika -->
     <script src="main.js"></script>
     
     <!-- Kompatibilní funkce a inicializace -->
