@@ -1,4 +1,4 @@
-// Hlavní aplikační logika - My Connect AI - OPRAVENÁ VERZE
+// Hlavní aplikační logika - My Connect AI - KOMPLETNĚ ČISTÁ VERZE
 
 // Globální proměnné
 let APP_CONFIG = {};
@@ -6,9 +6,8 @@ let tablesData = {};
 let messages = [];
 let queryProcessor = null;
 
-// Načtení konfigurace - ROZŠÍŘENÁ VERZE
+// Načtení konfigurace
 function loadConfig() {
-    // Základní nastavení
     APP_CONFIG.OPENAI_API_KEY = security.loadSecure('openai_key') || '';
     APP_CONFIG.GEMINI_API_KEY = security.loadSecure('gemini_key') || '';
     APP_CONFIG.CLAUDE_API_KEY = security.loadSecure('claude_key') || '';
@@ -26,7 +25,7 @@ function loadConfig() {
     });
 }
 
-// Odeslání zprávy s hybridním přístupem - AKTUALIZOVÁNO PRO NOVÉ AI MODELY
+// Odeslání zprávy
 async function sendMessage() {
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
@@ -48,8 +47,6 @@ async function sendMessage() {
         window.uiManager.addMessage('user', messageText);
     }
     chatInput.value = '';
-    
-    // Auto-resize textarea zpět na minimum
     chatInput.style.height = 'auto';
     
     // Nastavit loading stav
@@ -104,7 +101,7 @@ async function formatWithSelectedAI(userQuery, localResult) {
         return await formatWithOpenAI(userQuery, localResult);
     } catch (error) {
         console.error('AI formatting error:', error);
-        return localResult.response; // Fallback na lokální odpověď
+        return localResult.response;
     }
 }
 
@@ -165,10 +162,48 @@ function initializeQueryProcessor() {
         console.log('✅ Query Processor initialized');
         return true;
     }
-    return false;
+    return !!queryProcessor;
 }
 
-// Hlavní hybridní inicializace - AKTUALIZOVÁNO
+// Funkce pro získání statistik systému
+function getSystemStats() {
+    const stats = { companies: 0, contacts: 0, activities: 0, deals: 0, total: 0 };
+    
+    if (tablesData['Customers']) {
+        stats.companies = getRecordCount(tablesData['Customers']);
+    }
+    if (tablesData['Contacts']) {
+        stats.contacts = getRecordCount(tablesData['Contacts']);
+    }
+    if (tablesData['Activities']) {
+        stats.activities = getRecordCount(tablesData['Activities']);
+    }
+    if (tablesData['Deals']) {
+        stats.deals = getRecordCount(tablesData['Deals']);
+    }
+    
+    stats.total = stats.companies + stats.contacts + stats.activities + stats.deals;
+    return stats;
+}
+
+// Pomocná funkce pro počítání záznamů
+function getRecordCount(table) {
+    if (!table || !table.data) return 0;
+    
+    if (Array.isArray(table.data)) {
+        return table.data.length;
+    } else if (table.data.items && Array.isArray(table.data.items)) {
+        return table.data.items.length;
+    } else if (table.data.data && Array.isArray(table.data.data)) {
+        return table.data.data.length;
+    } else if (table.data.records && Array.isArray(table.data.records)) {
+        return table.data.records.length;
+    }
+    
+    return 0;
+}
+
+// Hlavní hybridní inicializace
 async function hybridInit() {
     console.log('🚀 Starting hybrid initialization...');
     
@@ -195,7 +230,7 @@ async function hybridInit() {
     
     // Zobrazit loading zprávu
     if (chatMessages) {
-        chatMessages.innerHTML = `<div class="message system-message">🔄 Načítám data a inicializuji hybridní systém...</div>`;
+        chatMessages.innerHTML = '<div class="message system-message">🔄 Načítám data a inicializuji hybridní systém...</div>';
     }
     
     try {
@@ -243,7 +278,6 @@ async function hybridInit() {
         console.error('❌ Hybrid initialization failed:', error);
         
         // Vyčistit chat messages
-        const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
             chatMessages.innerHTML = '';
         }
@@ -252,7 +286,6 @@ async function hybridInit() {
         if (window.uiManager) {
             window.uiManager.addMessage('error', '❌ Chyba při inicializaci systému. Zkontrolujte nastavení API.');
         } else {
-            // Fallback pokud UI Manager není dostupný
             console.error('UI Manager not available for error display');
             if (chatMessages) {
                 chatMessages.innerHTML = '<div class="message error-message">❌ Chyba při inicializaci systému. Zkontrolujte nastavení API.</div>';
@@ -261,58 +294,20 @@ async function hybridInit() {
     }
 }
 
-// Funkce pro získání statistik systému
-function getSystemStats() {
-    const stats = { companies: 0, contacts: 0, activities: 0, deals: 0, total: 0 };
-    
-    if (tablesData['Customers']) {
-        stats.companies = getRecordCount(tablesData['Customers']);
-    }
-    if (tablesData['Contacts']) {
-        stats.contacts = getRecordCount(tablesData['Contacts']);
-    }
-    if (tablesData['Activities']) {
-        stats.activities = getRecordCount(tablesData['Activities']);
-    }
-    if (tablesData['Deals']) {
-        stats.deals = getRecordCount(tablesData['Deals']);
-    }
-    
-    stats.total = stats.companies + stats.contacts + stats.activities + stats.deals;
-    return stats;
-}
-
-// Pomocná funkce pro počítání záznamů
-function getRecordCount(table) {
-    if (!table || !table.data) return 0;
-    
-    if (Array.isArray(table.data)) {
-        return table.data.length;
-    } else if (table.data.items && Array.isArray(table.data.items)) {
-        return table.data.items.length;
-    } else if (table.data.data && Array.isArray(table.data.data)) {
-        return table.data.data.length;
-    } else if (table.data.records && Array.isArray(table.data.records)) {
-        return table.data.records.length;
-    }
-    
-    return 0;
-}
-
 // Spuštění aplikace
 window.addEventListener('load', function() {
     console.log('🌟 Window loaded, starting HYBRID init...');
     setTimeout(hybridInit, 100);
 });
 
-// Alternativní spuštění pro případ, že window.onload již proběhl
+// Alternativní spuštění pro případ načtení
 if (document.readyState === 'complete') {
     setTimeout(hybridInit, 100);
 } else if (document.readyState === 'interactive') {
     setTimeout(hybridInit, 200);
 }
 
-// Export pro testování a kompatibilitu - ROZŠÍŘENO
+// Export pro globální použití
 window.hybridSystem = {
     queryProcessor: () => queryProcessor,
     tablesData: () => tablesData,
@@ -327,14 +322,14 @@ window.hybridSystem = {
     }
 };
 
-// Zachování kompatibility s existujícím kódem
+// Globální funkce pro kompatibilitu
 window.APP_CONFIG = APP_CONFIG;
 window.loadConfig = loadConfig;
 window.hybridInit = hybridInit;
 window.sendMessage = sendMessage;
 window.getSystemStats = getSystemStats;
 
-// Debugging a monitoring
+// Debug funkce
 window.debugInfo = function() {
     return {
         config: APP_CONFIG,
