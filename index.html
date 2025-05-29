@@ -14,33 +14,34 @@
 </head>
 <body>
     <div class="chat-container">
+        <!-- HLAVIČKA -->
         <div class="chat-header">
             <div class="header-content">
                 <h1><a href="#" onclick="location.reload(); return false;" class="header-logo-link">My Connect AI</a></h1>
                 <div class="header-subtitle">Hybridní AI Connect systém je připraven k použití</div>
             </div>
             <div class="header-buttons">
-                <button class="index-button" onclick="uiManager.showWelcomeScreen()" title="Zpět na úvodní stranu">
+                <button class="index-button" onclick="if(window.uiManager) window.uiManager.showWelcomeScreen()" title="Zpět na úvodní stranu">
                     Index
                 </button>
                 <div class="dropdown">
-                    <button class="menu-button" onclick="uiManager.toggleMainMenu()">
+                    <button class="menu-button" onclick="if(window.uiManager) window.uiManager.toggleMainMenu()">
                         Menu
                     </button>
                     <div class="dropdown-content" id="mainMenu">
-                        <button class="dropdown-item" onclick="uiManager.showSystemHelp(); uiManager.closeMainMenu();">
+                        <button class="dropdown-item" onclick="if(window.uiManager) { window.uiManager.showSystemHelp(); window.uiManager.closeMainMenu(); }">
                             Jak systém funguje
                         </button>
-                        <button class="dropdown-item" onclick="uiManager.showDataProtection(); uiManager.closeMainMenu();">
+                        <button class="dropdown-item" onclick="if(window.uiManager) { window.uiManager.showDataProtection(); window.uiManager.closeMainMenu(); }">
                             Ochrana dat
                         </button>
-                        <button class="dropdown-item" onclick="refreshData(); uiManager.closeMainMenu();">
+                        <button class="dropdown-item" onclick="refreshData(); if(window.uiManager) window.uiManager.closeMainMenu();">
                             Obnovit data
                         </button>
-                        <button class="dropdown-item" onclick="runDiagnosticsManual(); uiManager.closeMainMenu();">
+                        <button class="dropdown-item" onclick="runDiagnosticsManual(); if(window.uiManager) window.uiManager.closeMainMenu();">
                             Diagnostika
                         </button>
-                        <button class="dropdown-item" onclick="settingsManager.toggle(); uiManager.closeMainMenu();">
+                        <button class="dropdown-item" onclick="if(window.settingsManager) { window.settingsManager.toggle(); } if(window.uiManager) window.uiManager.closeMainMenu();">
                             Nastavení
                         </button>
                     </div>
@@ -59,7 +60,7 @@
                 
                 <div class="settings-section">
                     <label>Zvolený AI model</label>
-                    <select id="ai-model-select" onchange="settingsManager.updateAIModelDisplay()">
+                    <select id="ai-model-select" onchange="if(window.settingsManager) window.settingsManager.updateAIModelDisplay()">
                         <option value="openai">OpenAI (ChatGPT)</option>
                         <option value="gemini">Google Gemini</option>
                         <option value="claude">Anthropic Claude</option>
@@ -73,7 +74,7 @@
                         <label for="openai-key">OpenAI API klíč</label>
                         <div class="input-group">
                             <input type="password" id="openai-key" placeholder="sk-...">
-                            <button onclick="if(uiManager) uiManager.toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
+                            <button onclick="if(window.uiManager) window.uiManager.toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
                         </div>
                         <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
                     </div>
@@ -85,7 +86,7 @@
                         <label for="gemini-key">Google Gemini API klíč</label>
                         <div class="input-group">
                             <input type="password" id="gemini-key" placeholder="AIza...">
-                            <button onclick="if(uiManager) uiManager.toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
+                            <button onclick="if(window.uiManager) window.uiManager.toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
                         </div>
                         <small>Získejte na <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></small>
                     </div>
@@ -97,7 +98,7 @@
                         <label for="claude-key">Anthropic Claude API klíč</label>
                         <div class="input-group">
                             <input type="password" id="claude-key" placeholder="sk-ant-...">
-                            <button onclick="if(uiManager) uiManager.toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
+                            <button onclick="if(window.uiManager) window.uiManager.toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
                         </div>
                         <small>Získejte na <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
                     </div>
@@ -116,7 +117,7 @@
                             <strong>Tabidoo CRM</strong>
                             <span class="app-connector-status" id="tabidoo-status">Nepřipojeno</span>
                         </div>
-                        <button class="app-connector-toggle" onclick="if(uiManager) uiManager.toggleAppConnector('tabidoo')">Nastavit</button>
+                        <button class="app-connector-toggle" onclick="if(window.uiManager) window.uiManager.toggleAppConnector('tabidoo')">Nastavit</button>
                     </div>
                     
                     <div id="tabidoo-connector" class="app-connector-settings" style="display: none;">
@@ -130,7 +131,7 @@
                             <label for="tabidoo-token">API Token</label>
                             <div class="input-group">
                                 <input type="password" id="tabidoo-token" placeholder="eyJ...">
-                                <button onclick="if(uiManager) uiManager.toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
+                                <button onclick="if(window.uiManager) window.uiManager.toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
                             </div>
                             <small>Najdete v Tabidoo → Nastavení → API</small>
                         </div>
@@ -157,9 +158,9 @@
                 <div class="settings-section">
                     <label>Barevné schéma</label>
                     <div class="theme-selector">
-                        <div class="theme-option theme-claude active" onclick="uiManager.setTheme('claude')" title="Claude (výchozí)"></div>
-                        <div class="theme-option theme-google" onclick="uiManager.setTheme('google')" title="Google"></div>
-                        <div class="theme-option theme-replit" onclick="uiManager.setTheme('replit')" title="Replit"></div>
+                        <div class="theme-option theme-claude active" onclick="if(window.uiManager) window.uiManager.setTheme('claude')" title="Claude (výchozí)"></div>
+                        <div class="theme-option theme-google" onclick="if(window.uiManager) window.uiManager.setTheme('google')" title="Google"></div>
+                        <div class="theme-option theme-replit" onclick="if(window.uiManager) window.uiManager.setTheme('replit')" title="Replit"></div>
                     </div>
                     <small>Vyberte barevné schéma rozhraní</small>
                 </div>
@@ -173,10 +174,10 @@
                         <button onclick="importConfig()" class="config-btn">
                             📥 Import konfigurace
                         </button>
-                        <button onclick="startSetupWizard(); settingsManager.close();" class="config-btn">
+                        <button onclick="startSetupWizard(); if(window.settingsManager) window.settingsManager.close();" class="config-btn">
                             🧙‍♂️ Průvodce nastavením
                         </button>
-                        <button onclick="settingsManager.clearAllData()" class="config-btn danger">
+                        <button onclick="if(window.settingsManager) window.settingsManager.clearAllData()" class="config-btn danger">
                             🗑️ Vymazat vše
                         </button>
                     </div>
@@ -184,8 +185,8 @@
             </div>
             
             <div class="settings-actions">
-                <button onclick="settingsManager.save()" class="primary-btn">Uložit nastavení</button>
-                <button onclick="settingsManager.close()" class="secondary-btn">Zrušit</button>
+                <button onclick="if(window.settingsManager) window.settingsManager.save()" class="primary-btn">Uložit nastavení</button>
+                <button onclick="if(window.settingsManager) window.settingsManager.close()" class="secondary-btn">Zrušit</button>
             </div>
             
             <div class="security-info">
@@ -193,6 +194,7 @@
             </div>
         </div>
         
+        <!-- LOADING INDIKÁTOR -->
         <div id="embeddings-status" class="embeddings-status" style="display: none;">
             <span id="embeddings-text">Vytvářím vyhledávací index...</span>
             <div class="progress-bar">
@@ -200,6 +202,7 @@
             </div>
         </div>
         
+        <!-- CHAT OBLAST -->
         <div id="chat-messages" class="chat-messages">
             <div class="welcome-container">
                 <div class="example-queries" id="example-queries">
@@ -208,6 +211,7 @@
             </div>
         </div>
         
+        <!-- INPUT OBLAST -->
         <div class="chat-input-area" id="chat-input-area">
             <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
             <button id="send-button" class="send-button" onclick="sendMessage()">
@@ -224,13 +228,13 @@
         </div>
     </div>
 
-    <!-- SKRIPTY - Modulární struktura v správném pořadí -->
+    <!-- SKRIPTY - KONEČNÁ VERZE BEZ DUPLIKACÍ -->
     
-    <!-- 1. Základní moduly -->
+    <!-- 1. Základní infrastruktura -->
     <script src="security.js"></script>
     <script src="config.js"></script>
     
-    <!-- 2. Nové specializované moduly -->
+    <!-- 2. Specializované managery -->
     <script src="ai-models.js"></script>
     <script src="app-connectors.js"></script>
     <script src="ui-manager.js"></script>
@@ -242,23 +246,27 @@
     <script src="local-search.js"></script>
     <script src="query-processor.js"></script>
     
-    <!-- 4. Wizard moduly -->
+    <!-- 4. Wizard systém -->
     <script src="setup-wizard.js"></script>
     <script src="wizard-integration.js"></script>
     
-    <!-- 5. Hlavní aplikační logika -->
+    <!-- 5. Hlavní aplikace -->
     <script src="main.js"></script>
     
-    <!-- Kompatibilní funkce a inicializace -->
+    <!-- 6. Globální funkce a inicializace -->
     <script>
-        // Kompatibilní funkce pro existující kód
+        // === GLOBÁLNÍ KOMPATIBILNÍ FUNKCE ===
+        
         function refreshData() {
             if (!confirm('Opravdu chcete znovu načíst data?')) return;
             
             // Vymazat cache
             if (typeof CONFIG !== 'undefined' && CONFIG.CACHE) {
-                localStorage.removeItem(CONFIG.CACHE.DATA_KEY);
-                localStorage.removeItem(CONFIG.CACHE.DATA_TIMESTAMP_KEY);
+                Object.values(CONFIG.CACHE).forEach(key => {
+                    if (typeof key === 'string') {
+                        localStorage.removeItem(key);
+                    }
+                });
             }
             
             location.reload();
@@ -272,20 +280,33 @@
         }
         
         function exportConfig() {
-            if (settingsManager) {
-                const config = settingsManager.exportConfiguration();
+            if (!window.settingsManager) {
+                alert('Settings manager není dostupný');
+                return;
+            }
+            
+            try {
+                const config = window.settingsManager.exportConfiguration();
                 const exportKey = prompt('Zadejte heslo pro export (zapamatujte si ho):');
                 if (!exportKey) return;
                 
-                const encrypted = security.encrypt(JSON.stringify(config), exportKey);
+                const encrypted = window.security.encrypt(JSON.stringify(config), exportKey);
                 
                 const blob = new Blob([encrypted], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `myconnectai-config-${Date.now()}.enc`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                
+                console.log('✅ Configuration exported successfully');
+            } catch (error) {
+                console.error('❌ Export error:', error);
+                alert('Chyba při exportu: ' + error.message);
             }
         }
         
@@ -293,29 +314,36 @@
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = '.enc';
+            input.style.display = 'none';
             
             input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const encrypted = await file.text();
-                const exportKey = prompt('Zadejte heslo pro import:');
-                if (!exportKey) return;
-                
                 try {
-                    const decrypted = security.decrypt(encrypted, exportKey);
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const encrypted = await file.text();
+                    const exportKey = prompt('Zadejte heslo pro import:');
+                    if (!exportKey) return;
+                    
+                    const decrypted = window.security.decrypt(encrypted, exportKey);
                     const config = JSON.parse(decrypted);
                     
-                    if (settingsManager) {
-                        await settingsManager.importConfiguration(config);
+                    if (window.settingsManager) {
+                        await window.settingsManager.importConfiguration(config);
                         alert('Konfigurace úspěšně importována!');
-                        location.reload();
+                        setTimeout(() => location.reload(), 1000);
                     }
                 } catch (error) {
+                    console.error('❌ Import error:', error);
                     alert('Chyba při importu: Nesprávné heslo nebo poškozený soubor');
+                } finally {
+                    if (input.parentNode) {
+                        document.body.removeChild(input);
+                    }
                 }
             };
             
+            document.body.appendChild(input);
             input.click();
         }
         
@@ -331,24 +359,17 @@
         function cancelSetupWizard() {
             if (confirm('Opravdu chcete zrušit průvodce nastavením?')) {
                 sessionStorage.removeItem('wizardStartedFromSettings');
-                if (uiManager) {
-                    uiManager.showWelcomeScreen();
+                if (window.uiManager) {
+                    window.uiManager.showWelcomeScreen();
                 } else {
                     location.reload();
                 }
             }
         }
         
-        // Zachování kompatibility s existujícím kódem
-        window.toggleSettings = () => settingsManager?.toggle();
-        window.saveSettings = () => settingsManager?.save();
-        window.showWelcomeScreen = () => uiManager?.showWelcomeScreen();
-        window.showSystemHelp = () => uiManager?.showSystemHelp();
-        window.showDataProtection = () => uiManager?.showDataProtection();
-        window.addMessage = (...args) => uiManager?.addMessage(...args);
-        window.addDiagnosticMessage = (...args) => uiManager?.addDiagnosticMessage(...args);
+        // === EVENT LISTENERS ===
         
-        // Close menu when clicking outside
+        // Zavření dropdown menu při kliknutí mimo
         document.addEventListener('click', function(event) {
             if (!event.target.matches('.menu-button') && !event.target.closest('.dropdown')) {
                 const dropdowns = document.getElementsByClassName('dropdown-content');
@@ -360,940 +381,57 @@
             }
         });
         
-        console.log('🚀 My Connect AI - Modular structure loaded');
-    </script>
-</body>
-</html>        // === ENHANCED LOAD CONFIG ===
-        function loadConfig() {
-            APP_CONFIG.OPENAI_API_KEY = security.loadSecure('openai_key') || '';
-            APP_CONFIG.GEMINI_API_KEY = security.loadSecure('gemini_key') || '';
-            APP_CONFIG.CLAUDE_API_KEY = security.loadSecure('claude_key') || '';
-            APP_CONFIG.TABIDOO_API_TOKEN = security.loadSecure('tabidoo_token') || '';
-            APP_CONFIG.TABIDOO_APP_ID = security.loadSecure('tabidoo_app_id') || '';
-            APP_CONFIG.SELECTED_AI_MODEL = localStorage.getItem('selected_ai_model') || 'openai';
-            
-            console.log('Config loaded:', {
-                hasOpenAI: !!APP_CONFIG.OPENAI_API_KEY,
-                hasGemini: !!APP_CONFIG.GEMINI_API_KEY,
-                hasClaude: !!APP_CONFIG.CLAUDE_API_KEY,
-                hasTabidoo: !!APP_CONFIG.TABIDOO_API_TOKEN,
-                hasAppId: !!APP_CONFIG.TABIDOO_APP_ID,
-                selectedAI: APP_CONFIG.SELECTED_AI_MODEL
-            });
-        }
-        
-        // === HELPER FUNCTIONS ===<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Connect AI | MELIORO Systems</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="wizard-styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-</head>
-<body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="header-content">
-                <h1><a href="#" onclick="location.reload(); return false;" class="header-logo-link">My Connect AI</a></h1>
-                <div class="header-subtitle">Hybridní AI Connect systém je připraven k použití</div>
-            </div>
-            <div class="header-buttons">
-                <button class="index-button" onclick="showWelcomeScreen()" title="Zpět na úvodní stranu">
-                    Index
-                </button>
-                <div class="dropdown">
-                    <button class="menu-button" onclick="toggleMainMenu()">
-                        Menu
-                    </button>
-                    <div class="dropdown-content" id="mainMenu">
-                        <button class="dropdown-item" onclick="showSystemHelp(); closeMainMenu();">
-                            Jak systém funguje
-                        </button>
-                        <button class="dropdown-item" onclick="showDataProtection(); closeMainMenu();">
-                            Ochrana dat
-                        </button>
-                        <button class="dropdown-item" onclick="refreshData(); closeMainMenu();">
-                            Obnovit data
-                        </button>
-                        <button class="dropdown-item" onclick="runDiagnosticsManual(); closeMainMenu();">
-                            Diagnostika
-                        </button>
-                        <button class="dropdown-item" onclick="toggleSettings(); closeMainMenu();">
-                            Nastavení
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="settings-panel" class="settings-panel" style="display: none;">
-            <div class="settings-title">Nastavení systému</div>
-            
-            <!-- BLOK: AI MODELY -->
-            <div class="settings-block">
-                <div class="block-title">🤖 AI Modely</div>
-                <div class="block-description">Vyberte a nastavte AI model pro komunikaci</div>
-                
-                <div class="settings-section">
-                    <label>Zvolený AI model</label>
-                    <select id="ai-model-select" onchange="toggleAIModelSettings()">
-                        <option value="openai">OpenAI (ChatGPT)</option>
-                        <option value="gemini">Google Gemini</option>
-                        <option value="claude">Anthropic Claude</option>
-                    </select>
-                    <small>Vyberte preferovaný AI model pro komunikaci</small>
-                </div>
-                
-                <!-- OpenAI nastavení -->
-                <div id="openai-settings" class="ai-model-settings">
-                    <div class="settings-section">
-                        <label for="openai-key">OpenAI API klíč</label>
-                        <div class="input-group">
-                            <input type="password" id="openai-key" placeholder="sk-...">
-                            <button onclick="toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
-                        </div>
-                        <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
-                    </div>
-                </div>
-                
-                <!-- Gemini nastavení -->
-                <div id="gemini-settings" class="ai-model-settings" style="display: none;">
-                    <div class="settings-section">
-                        <label for="gemini-key">Google Gemini API klíč</label>
-                        <div class="input-group">
-                            <input type="password" id="gemini-key" placeholder="AIza...">
-                            <button onclick="toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
-                        </div>
-                        <small>Získejte na <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></small>
-                    </div>
-                </div>
-                
-                <!-- Claude nastavení -->
-                <div id="claude-settings" class="ai-model-settings" style="display: none;">
-                    <div class="settings-section">
-                        <label for="claude-key">Anthropic Claude API klíč</label>
-                        <div class="input-group">
-                            <input type="password" id="claude-key" placeholder="sk-ant-...">
-                            <button onclick="toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
-                        </div>
-                        <small>Získejte na <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- BLOK: APLIKACE -->
-            <div class="settings-block">
-                <div class="block-title">📊 Připojené aplikace</div>
-                <div class="block-description">Nastavení připojení k vašim datovým zdrojům</div>
-                
-                <!-- Tabidoo -->
-                <div class="app-connector">
-                    <div class="app-connector-header">
-                        <div class="app-connector-info">
-                            <strong>Tabidoo CRM</strong>
-                            <span class="app-connector-status" id="tabidoo-status">Nepřipojeno</span>
-                        </div>
-                        <button class="app-connector-toggle" onclick="toggleAppConnector('tabidoo')">Nastavit</button>
-                    </div>
-                    
-                    <div id="tabidoo-connector" class="app-connector-settings" style="display: none;">
-                        <div class="settings-section">
-                            <label for="tabidoo-app-id">App ID</label>
-                            <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
-                            <small>Název vaší aplikace v Tabidoo</small>
-                        </div>
-                        
-                        <div class="settings-section">
-                            <label for="tabidoo-token">API Token</label>
-                            <div class="input-group">
-                                <input type="password" id="tabidoo-token" placeholder="eyJ...">
-                                <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
-                            </div>
-                            <small>Najdete v Tabidoo → Nastavení → API</small>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Připraveno pro další aplikace -->
-                <div class="app-connector future-connector">
-                    <div class="app-connector-header">
-                        <div class="app-connector-info">
-                            <strong>Další aplikace</strong>
-                            <span class="app-connector-status">Připravujeme</span>
-                        </div>
-                        <button class="app-connector-toggle" disabled>Brzy</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- BLOK: OBECNÉ NASTAVENÍ -->
-            <div class="settings-block">
-                <div class="block-title">⚙️ Obecné nastavení</div>
-                <div class="block-description">Vzhled a správa konfigurace</div>
-                
-                <div class="settings-section">
-                    <label>Barevné schéma</label>
-                    <div class="theme-selector">
-                        <div class="theme-option theme-claude active" onclick="setAppTheme('claude')" title="Claude (výchozí)"></div>
-                        <div class="theme-option theme-google" onclick="setAppTheme('google')" title="Google"></div>
-                        <div class="theme-option theme-replit" onclick="setAppTheme('replit')" title="Replit"></div>
-                    </div>
-                    <small>Vyberte barevné schéma rozhraní</small>
-                </div>
-                
-                <div class="settings-section">
-                    <label>Správa konfigurace</label>
-                    <div class="config-actions">
-                        <button onclick="exportConfig()" class="config-btn">
-                            📤 Export konfigurace
-                        </button>
-                        <button onclick="importConfig()" class="config-btn">
-                            📥 Import konfigurace
-                        </button>
-                        <button onclick="startSetupWizard(); toggleSettings();" class="config-btn">
-                            🧙‍♂️ Průvodce nastavením
-                        </button>
-                        <button onclick="clearAllData()" class="config-btn danger">
-                            🗑️ Vymazat vše
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="settings-actions">
-                <button onclick="saveSettings()" class="primary-btn">Uložit nastavení</button>
-                <button onclick="toggleSettings()" class="secondary-btn">Zrušit</button>
-            </div>
-            
-            <div class="security-info">
-                Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.
-            </div>
-        </div>
-        
-        <div id="embeddings-status" class="embeddings-status" style="display: none;">
-            <span id="embeddings-text">Vytvářím vyhledávací index...</span>
-            <div class="progress-bar">
-                <div id="embeddings-progress" class="progress-fill"></div>
-            </div>
-        </div>
-        
-        <div id="chat-messages" class="chat-messages">
-            <div class="welcome-container">
-                <div class="example-queries" id="example-queries">
-                    <!-- Příklady budou načteny dynamicky -->
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-input-area" id="chat-input-area">
-            <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
-            <button id="send-button" class="send-button" onclick="sendMessage()">
-                Odeslat
-            </button>
-        </div>
-        
-        <!-- NOVÁ PATIČKA -->
-        <div class="app-footer">
-            <div class="footer-content">
-                <span class="footer-text">Powered by <a href="http://melioro.cz" target="_blank" rel="noopener noreferrer" class="footer-link"><strong>MELIORO Systems</strong></a></span>
-                <span class="footer-domain">myconnectai.online</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Načtení POUZE existujících skriptů -->
-    <script src="security.js"></script>
-    <script src="config.js"></script>
-    <script src="display.js"></script>
-    <script src="data-loader.js"></script>
-    <script src="local-search.js"></script>
-    <script src="query-processor.js"></script>
-    <script src="setup-wizard.js"></script>
-    <script src="wizard-integration.js"></script>
-    <script src="main.js"></script>
-    
-    <script>
-        // === THEME MANAGEMENT ===
-        function setAppTheme(theme) {
-            document.body.classList.remove('theme-claude', 'theme-google', 'theme-replit');
-            
-            if (theme !== 'claude') {
-                document.body.classList.add('theme-' + theme);
+        // Klávesové zkratky
+        document.addEventListener('keydown', function(event) {
+            // ESC - zavřít nastavení
+            if (event.key === 'Escape' && window.settingsManager && window.settingsManager.isOpen) {
+                window.settingsManager.close();
             }
             
-            localStorage.setItem('selectedAppTheme', theme);
-            
-            document.querySelectorAll('.theme-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            const activeOption = document.querySelector('.theme-' + theme);
-            if (activeOption) {
-                activeOption.classList.add('active');
-            }
-        }
-
-        function loadAppTheme() {
-            const savedTheme = localStorage.getItem('selectedAppTheme') || 'claude';
-            setAppTheme(savedTheme);
-        }
-
-        // === MENU MANAGEMENT ===
-        function toggleMainMenu() {
-            const dropdown = document.getElementById('mainMenu');
-            if (dropdown) {
-                dropdown.classList.toggle('show');
-            }
-        }
-
-        function closeMainMenu() {
-            const dropdown = document.getElementById('mainMenu');
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
-        }
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.matches('.menu-button') && !event.target.closest('.dropdown')) {
-                const dropdowns = document.getElementsByClassName('dropdown-content');
-                for (let dropdown of dropdowns) {
-                    if (dropdown.classList.contains('show')) {
-                        dropdown.classList.remove('show');
-                    }
+            // F1 - nápověda
+            if (event.key === 'F1') {
+                event.preventDefault();
+                if (window.uiManager) {
+                    window.uiManager.showSystemHelp();
                 }
             }
         });
-
-        // === AI MODEL MANAGEMENT ===
-        function toggleAIModelSettings() {
-            const selectedModel = document.getElementById('ai-model-select').value;
-            
-            // Skrýt všechna nastavení AI modelů
-            document.querySelectorAll('.ai-model-settings').forEach(settings => {
-                settings.style.display = 'none';
-            });
-            
-            // Zobrazit vybrané nastavení
-            const selectedSettings = document.getElementById(selectedModel + '-settings');
-            if (selectedSettings) {
-                selectedSettings.style.display = 'block';
-            }
-            
-            console.log('🤖 AI model changed to:', selectedModel);
-        }
         
-        // === APP CONNECTOR MANAGEMENT ===
-        function toggleAppConnector(appName) {
-            const connector = document.getElementById(appName + '-connector');
-            const button = event.target;
-            
-            if (connector.style.display === 'none' || !connector.style.display) {
-                connector.style.display = 'block';
-                button.textContent = 'Skrýt';
-            } else {
-                connector.style.display = 'none';
-                button.textContent = 'Nastavit';
-            }
-        }
+        // === ZPĚTNÁ KOMPATIBILITA ===
         
-        function updateAppStatus(appName, status) {
-            const statusElement = document.getElementById(appName + '-status');
-            if (statusElement) {
-                statusElement.textContent = status;
-                statusElement.className = 'app-connector-status ' + status.toLowerCase().replace(' ', '-');
-            }
-        }
+        // Globální funkce pro zpětnou kompatibilitu se starým kódem
+        window.toggleSettings = () => window.settingsManager?.toggle();
+        window.saveSettings = () => window.settingsManager?.save();
+        window.showWelcomeScreen = () => window.uiManager?.showWelcomeScreen();
+        window.showSystemHelp = () => window.uiManager?.showSystemHelp();
+        window.showDataProtection = () => window.uiManager?.showDataProtection();
+        window.addMessage = (...args) => window.uiManager?.addMessage(...args);
+        window.addDiagnosticMessage = (...args) => window.uiManager?.addDiagnosticMessage(...args);
+        window.toggleVisibility = (fieldId) => window.uiManager?.toggleVisibility(fieldId);
+        window.toggleAppConnector = (appName) => window.uiManager?.toggleAppConnector(appName);
+        window.updateAppStatus = (appName, status) => window.uiManager?.updateAppStatus(appName, status);
+        window.setAppTheme = (theme) => window.uiManager?.setTheme(theme);
+        window.toggleMainMenu = () => window.uiManager?.toggleMainMenu();
+        window.closeMainMenu = () => window.uiManager?.closeMainMenu();
+        window.clickExampleQuery = (query) => window.uiManager?.clickExampleQuery(query);
         
-        // === ENHANCED SAVE SETTINGS ===
-        function saveSettings() {
-            // Získat aktuální AI model
-            const selectedAIModel = document.getElementById('ai-model-select').value;
-            
-            // Uložit AI model preference
-            localStorage.setItem('selected_ai_model', selectedAIModel);
-            
-            // Uložit API klíče podle vybraného modelu
-            const openaiKey = document.getElementById('openai-key').value.trim();
-            const geminiKey = document.getElementById('gemini-key').value.trim();
-            const claudeKey = document.getElementById('claude-key').value.trim();
-            
-            if (openaiKey) {
-                security.saveSecure('openai_key', openaiKey);
-                APP_CONFIG.OPENAI_API_KEY = openaiKey;
-            }
-            if (geminiKey) {
-                security.saveSecure('gemini_key', geminiKey);
-                APP_CONFIG.GEMINI_API_KEY = geminiKey;
-            }
-            if (claudeKey) {
-                security.saveSecure('claude_key', claudeKey);
-                APP_CONFIG.CLAUDE_API_KEY = claudeKey;
-            }
-            
-            // Uložit Tabidoo nastavení
-            const tabidooToken = document.getElementById('tabidoo-token').value.trim();
-            const tabidooAppId = document.getElementById('tabidoo-app-id').value.trim();
-            
-            if (tabidooToken) {
-                security.saveSecure('tabidoo_token', tabidooToken);
-                APP_CONFIG.TABIDOO_API_TOKEN = tabidooToken;
-                updateAppStatus('tabidoo', 'Připojeno');
-            }
-            
-            if (tabidooAppId) {
-                security.saveSecure('tabidoo_app_id', tabidooAppId);
-                APP_CONFIG.TABIDOO_APP_ID = tabidooAppId;
-            }
-            
-            console.log('💾 Settings saved with AI model:', selectedAIModel);
-            alert('Nastavení bezpečně uloženo!');
-            toggleSettings();
-            
-            // Reload pokud jsou potřeba nová data
-            if (Object.keys(tablesData).length === 0 && APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID) {
-                location.reload();
-            }
-        }
+        console.log('🚀 My Connect AI - Clean modular system loaded');
         
-        // === ENHANCED TOGGLE SETTINGS ===
-        function toggleSettings() {
-            const panel = document.getElementById('settings-panel');
-            if (!panel) {
-                console.error('Settings panel not found!');
-                return;
-            }
-            
-            const isHidden = panel.style.display === 'none' || !panel.style.display;
-            
-            if (isHidden) {
-                panel.style.display = 'block';
-                
-                // Načíst uložená nastavení
-                loadSettingsValues();
-                
-                // Zobrazit správný AI model
-                setTimeout(() => {
-                    toggleAIModelSettings();
-                }, 50);
-            } else {
-                panel.style.display = 'none';
-            }
-        }
-        
-        // === LOAD SETTINGS VALUES ===
-        function loadSettingsValues() {
-            // Načíst AI model preference
-            const savedAIModel = localStorage.getItem('selected_ai_model') || 'openai';
-            document.getElementById('ai-model-select').value = savedAIModel;
-            
-            // Načíst API klíče
-            const openaiField = document.getElementById('openai-key');
-            const geminiField = document.getElementById('gemini-key');
-            const claudeField = document.getElementById('claude-key');
-            const tabidooField = document.getElementById('tabidoo-token');
-            const appIdField = document.getElementById('tabidoo-app-id');
-            
-            // Vyčistit všechna pole
-            openaiField.value = '';
-            geminiField.value = '';
-            claudeField.value = '';
-            tabidooField.value = '';
-            
-            // Nastavit placeholdery
-            openaiField.placeholder = APP_CONFIG.OPENAI_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'sk-...';
-            geminiField.placeholder = APP_CONFIG.GEMINI_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'AIza...';
-            claudeField.placeholder = APP_CONFIG.CLAUDE_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'sk-ant-...';
-            tabidooField.placeholder = APP_CONFIG.TABIDOO_API_TOKEN ? 'Token je nastaven (pro změnu zadejte nový)' : 'eyJ...';
-            
-            // App ID
-            appIdField.value = APP_CONFIG.TABIDOO_APP_ID || '';
-            
-            // Aktualizovat status aplikací
-            if (APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID) {
-                updateAppStatus('tabidoo', 'Připojeno');
-            } else {
-                updateAppStatus('tabidoo', 'Nepřipojeno');
-            }
-        }
-        function toggleVisibility(fieldId) {
-            const field = document.getElementById(fieldId);
-            if (!field) return;
-            
-            const button = field.parentNode.querySelector('.toggle-btn');
-            if (field.type === 'password') {
-                field.type = 'text';
-                if (button) button.textContent = 'Skrýt';
-            } else {
-                field.type = 'password';
-                if (button) button.textContent = 'Zobrazit';
-            }
-        }
-        
-        // Enhanced toggleSettings to ensure footer buttons are added
-        function toggleSettings() {
-            const panel = document.getElementById('settings-panel');
-            if (!panel) {
-                console.error('Settings panel not found!');
-                return;
-            }
-            
-            const isHidden = panel.style.display === 'none' || !panel.style.display;
-            
-            if (isHidden) {
-                panel.style.display = 'block';
-                
-                // FORCE create footer buttons every time settings open
-                setTimeout(() => {
-                    forceCreateSettingsFooter();
-                }, 50);
-            } else {
-                panel.style.display = 'none';
-            }
-        }
-        
-        // Function to FORCE create settings footer buttons
-        function forceCreateSettingsFooter() {
-            const panel = document.getElementById('settings-panel');
-            if (!panel) return;
-            
-            // Remove existing footer if it exists
-            let existingFooter = panel.querySelector('.settings-footer');
-            if (existingFooter) {
-                existingFooter.remove();
-            }
-            
-            // Find security info or create insertion point
-            let securityInfo = panel.querySelector('.security-info');
-            
-            // Create new footer
-            const footer = document.createElement('div');
-            footer.className = 'settings-footer';
-            footer.innerHTML = `
-                <button onclick="startSetupWizard(); toggleSettings();" class="link-btn">Nastavení nové aplikace</button>
-                <button onclick="exportConfig()" class="link-btn">Export konfigurace</button>
-                <button onclick="importConfig()" class="link-btn">Import konfigurace</button>
-                <button onclick="clearAllData()" class="link-btn danger">Vymazat vše</button>
-            `;
-            
-            if (securityInfo) {
-                // Insert before security info
-                securityInfo.parentNode.insertBefore(footer, securityInfo);
-            } else {
-                // Just append to panel
-                panel.appendChild(footer);
-                
-                // Also create security info if it doesn't exist
-                const securityDiv = document.createElement('div');
-                securityDiv.className = 'security-info';
-                securityDiv.textContent = 'Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.';
-                panel.appendChild(securityDiv);
-            }
-            
-            console.log('🔧 Settings footer forcefully created');
-        }
-        
-        // Override toggleSettings globally IMMEDIATELY
-        window.toggleSettings = toggleSettings;
-        
-        function clearAllData() {
-            if (confirm('Opravdu chcete vymazat všechna data včetně API klíčů?\n\nTato akce je nevratná!')) {
-                localStorage.clear();
-                alert('Všechna data byla vymazána.');
-                location.reload();
-            }
-        }
-        
-        function runDiagnosticsManual() {
-            if (typeof CONFIG !== 'undefined' && CONFIG.CACHE && CONFIG.CACHE.DIAGNOSTICS_KEY) {
-                localStorage.removeItem(CONFIG.CACHE.DIAGNOSTICS_KEY);
-            }
-            location.reload();
-        }
-        
-        // === EXAMPLE QUERIES ===
-        function loadExampleQueries() {
-            const exampleQueriesContainer = document.getElementById('example-queries');
-            if (!exampleQueriesContainer) return;
-            
-            let examples = [];
-            if (typeof CONFIG !== 'undefined' && CONFIG.EXAMPLE_QUERIES) {
-                examples = CONFIG.EXAMPLE_QUERIES;
-            } else {
-                examples = [
-                    { text: 'Kolik firem je v systému?' },
-                    { text: 'Vypiš všechny firmy' },
-                    { text: 'Najdi firmu Alza' },
-                    { text: 'Kolik kontaktů máme?' },
-                    { text: 'Vypiš obchodní případy' },
-                    { text: 'Kolik aktivit proběhlo?' }
-                ];
-            }
-            
-            exampleQueriesContainer.innerHTML = examples.map(example => `
-                <div class="example-query" onclick="clickExampleQuery('${example.text.replace(/'/g, "\\'")}')">
-                    ${example.text}
-                </div>
-            `).join('');
-        }
-        
-        function clickExampleQuery(query) {
-            const chatInput = document.getElementById('chat-input');
-            if (!chatInput) return;
-            
-            chatInput.value = query;
-            chatInput.focus();
-            
-            chatInput.style.height = 'auto';
-            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
-            
-            if (typeof hideWelcomeScreen === 'function') {
-                hideWelcomeScreen();
-            }
-        }
-        
-        // === AUTO-RESIZE TEXTAREA ===
-        function setupAutoResize() {
-            const chatInput = document.getElementById('chat-input');
-            if (!chatInput) return;
-            
-            chatInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-            });
-            
-            chatInput.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    if (typeof sendMessage === 'function') {
-                        sendMessage();
-                    }
-                }
-            });
-        }
-        
-        // === ENHANCED SYSTEM HELP ===
-        function showSystemHelp() {
-            const chatMessages = document.getElementById('chat-messages');
-            if (!chatMessages) return;
-            
-            const helpContent = `
-                <div class="system-help">
-                    <div class="help-header">
-                        <h3>Jak systém funguje</h3>
-                        <button class="help-close-btn" onclick="showWelcomeScreen()">&times;</button>
-                    </div>
-                    
-                    <div class="help-content">
-                        <div class="help-section">
-                            <h4>Hybridní AI Connect přístup</h4>
-                            <p>Kombinuje rychlé lokální vyhledávání s inteligentní AI komunikací. 
-                            Vaše data zpracovávám lokálně pro rychlost a přesnost, ChatGPT používám jen pro formulaci odpovědí.</p>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>Klíčové výhody</h4>
-                            <ul class="help-list">
-                                <li>Okamžité odpovědi bez čekání na API</li>
-                                <li>100% přesnost při počítání záznamů</li>
-                                <li>Inteligentní rozpoznávání různých tvarů slov</li>
-                                <li>Chytré vyhledávání nezávislé na velikosti písmen</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>Co umím</h4>
-                            <ul class="help-list">
-                                <li>Počítat záznamy - "Kolik firem máme?"</li>
-                                <li>Vypisovat seznamy - "Vypiš všechny kontakty"</li>
-                                <li>Vyhledávat konkrétní záznamy - "Najdi firmu XYZ"</li>
-                                <li>Najít související informace - "Jaké aktivity má firma ABC?"</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            chatMessages.innerHTML = helpContent;
-        }
-        
-        // === DATA PROTECTION INFO ===
-        function showDataProtection() {
-            const chatMessages = document.getElementById('chat-messages');
-            if (!chatMessages) return;
-            
-            const dataProtectionContent = `
-                <div class="system-help">
-                    <div class="help-header">
-                        <h3>🔒 Ochrana dat a soukromí</h3>
-                        <button class="help-close-btn" onclick="showWelcomeScreen()">&times;</button>
-                    </div>
-                    
-                    <div class="help-content">
-                        <div class="help-section">
-                            <h4>🛡️ GDPR Compliance</h4>
-                            <p>My Connect AI je plně v souladu s nařízením GDPR. Vaše osobní data jsou chráněna podle nejvyšších evropských standardů a máte plnou kontrolu nad jejich zpracováním.</p>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>🔐 Zabezpečení dat</h4>
-                            <ul class="help-list">
-                                <li><strong>Lokální šifrování:</strong> API klíče jsou šifrovány a uloženy pouze ve vašem prohlížeči</li>
-                                <li><strong>Žádné sledování:</strong> Neukládáme žádné osobní údaje na našich serverech</li>
-                                <li><strong>Přímé připojení:</strong> Komunikujeme přímo s Tabidoo a OpenAI API</li>
-                                <li><strong>Transparentnost:</strong> Veškerý kód je open source a kontrolovatelný</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>👤 Vaše práva</h4>
-                            <ul class="help-list">
-                                <li><strong>Plná kontrola:</strong> Kdykoliv můžete smazat všechna svá data</li>
-                                <li><strong>Export dat:</strong> Můžete exportovat svou konfiguraci</li>
-                                <li><strong>Anonymita:</strong> Nepotřebujeme žádnou registraci ani osobní údaje</li>
-                                <li><strong>Odejít kdykoliv:</strong> Žádné závazky nebo předplatné</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>🏢 Zpracování firemních dat</h4>
-                            <ul class="help-list">
-                                <li><strong>Lokální zpracování:</strong> Veškerá analýza probíhá ve vašem prohlížeči</li>
-                                <li><strong>Bez ukládání:</strong> Neukládáme kopie vašich Tabidoo dat</li>
-                                <li><strong>Šifrovaná komunikace:</strong> Veškerá komunikace probíhá přes HTTPS</li>
-                                <li><strong>Audit trail:</strong> Všechny akce jsou protokolovány pro bezpečnost</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>🌍 Mezinárodní standardy</h4>
-                            <p>Systém My Connect AI dodržuje mezinárodní standardy pro ochranu dat včetně GDPR (EU), CCPA (California), a dalších regionálních předpisů. Vaše data nikdy neopustí váš prohlížeč bez vašeho výslovného souhlasu.</p>
-                        </div>
-                        
-                        <div class="help-section">
-                            <h4>📞 Kontakt a podpora</h4>
-                            <p>V případě dotazů ohledně ochrany dat nás kontaktujte na: <strong>privacy@melioro.cz</strong></p>
-                            <p>Reakce do 24 hodin • Česká podpora • Odborné poradenství</p>
-                        </div>
-                    </div>
-                    
-                    <div class="help-footer" style="background: var(--surface); padding: 1rem 2rem; border-top: 1px solid var(--border); text-align: center;">
-                        <p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary);">
-                            <strong>My Connect AI</strong> - Bezpečný, transparentní a v souladu s GDPR
-                        </p>
-                    </div>
-                </div>
-            `;
-            
-            chatMessages.innerHTML = dataProtectionContent;
-        }
-        
-        // === ENHANCED WIZARD FUNCTIONS ===
-        
-        // Override startSetupWizard to add cancel functionality and close settings
-        function createStartSetupWizardWrapper() {
-            const originalStartSetupWizard = window.startSetupWizard;
-            
-            window.startSetupWizard = function() {
-                console.log('🧙‍♂️ Starting wizard with settings closure');
-                
-                // FORCE close settings panel
-                const settingsPanel = document.getElementById('settings-panel');
-                if (settingsPanel) {
-                    settingsPanel.style.display = 'none';
-                    console.log('Settings panel closed');
-                }
-                
-                // Store reference that wizard was started from settings
-                sessionStorage.setItem('wizardStartedFromSettings', 'true');
-                
-                // Call original function if exists
-                if (originalStartSetupWizard && typeof originalStartSetupWizard === 'function') {
-                    return originalStartSetupWizard();
-                } else if (typeof setupWizard !== 'undefined' && setupWizard.start) {
-                    return setupWizard.start();
-                } else {
-                    console.error('Setup wizard not available');
-                    alert('Průvodce nastavením není dostupný. Zkuste obnovit stránku.');
-                }
+        // Debug funkce pro vývojáře
+        window.debugMyConnectAI = function() {
+            return {
+                version: '1.0.0',
+                modules: {
+                    security: !!window.security,
+                    config: !!window.CONFIG,
+                    aiModels: !!window.aiModelsManager,
+                    appConnectors: !!window.appConnectorsManager,
+                    ui: !!window.uiManager,
+                    settings: !!window.settingsManager
+                },
+                status: 'ready'
             };
-        }
-        
-        // Apply wrapper immediately and after delay
-        createStartSetupWizardWrapper();
-        setTimeout(createStartSetupWizardWrapper, 2000);
-        setTimeout(createStartSetupWizardWrapper, 5000);
-        
-        // Add cancel wizard function
-        function cancelSetupWizard() {
-            if (confirm('Opravdu chcete zrušit průvodce nastavením?')) {
-                sessionStorage.removeItem('wizardStartedFromSettings');
-                // Return to normal state
-                if (typeof showWelcomeScreen === 'function') {
-                    showWelcomeScreen();
-                } else {
-                    location.reload();
-                }
-            }
-        }
-        
-        // Make cancel function globally available
-        window.cancelSetupWizard = cancelSetupWizard;
-        
-        // === INTEGRATION WITH EXISTING SYSTEM ===
-        
-        // FORCE override showWelcomeScreen AFTER all scripts load
-        function forceCorrectWelcomeScreen() {
-            const chatMessages = document.getElementById('chat-messages');
-            if (!chatMessages) return;
-            
-            chatMessages.innerHTML = `
-                <div class="welcome-container">
-                    <div class="example-queries" id="example-queries">
-                        <!-- Příklady budou načteny dynamicky -->
-                    </div>
-                </div>
-            `;
-            
-            // Load example queries immediately
-            loadExampleQueries();
-        }
-        
-        // Override the function MULTIPLE times to ensure it sticks
-        window.showWelcomeScreen = forceCorrectWelcomeScreen;
-        
-        // Watch for any attempts to change welcome screen content
-        let welcomeObserver;
-        function startWelcomeScreenProtection() {
-            const chatMessages = document.getElementById('chat-messages');
-            if (!chatMessages) return;
-            
-            // Disconnect existing observer
-            if (welcomeObserver) {
-                welcomeObserver.disconnect();
-            }
-            
-            // Create new observer to watch for unwanted changes
-            welcomeObserver = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                        const welcomeContainer = chatMessages.querySelector('.welcome-container');
-                        if (welcomeContainer) {
-                            // Check if unwanted buttons were added
-                            const actionButtons = welcomeContainer.querySelector('.welcome-actions, .help-btn, .examples-btn');
-                            if (actionButtons) {
-                                console.log('🛡️ Blocking unwanted welcome buttons');
-                                forceCorrectWelcomeScreen();
-                            }
-                        }
-                    }
-                });
-            });
-            
-            welcomeObserver.observe(chatMessages, {
-                childList: true,
-                subtree: true
-            });
-        }
-        
-        // === INITIALIZATION ===
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎨 Enhanced UI initializing...');
-            
-            loadAppTheme();
-            setupAutoResize();
-            
-            // Override toggleSettings immediately
-            window.toggleSettings = toggleSettings;
-            
-            // Start protection and force correct welcome screen
-            setTimeout(() => {
-                startWelcomeScreenProtection();
-                forceCorrectWelcomeScreen();
-            }, 100);
-            
-            console.log('🎨 Enhanced UI ready');
-        });
-        
-        // Fallback for already loaded DOM
-        if (document.readyState !== 'loading') {
-            setTimeout(() => {
-                loadAppTheme();
-                setupAutoResize();
-                window.toggleSettings = toggleSettings;
-                startWelcomeScreenProtection();
-                forceCorrectWelcomeScreen();
-            }, 200);
-        }
-        
-        // ALSO override toggleSettings after all scripts load
-        setTimeout(() => {
-            window.toggleSettings = toggleSettings;
-            console.log('🔧 toggleSettings override applied');
-        }, 3000);
-        
-        // AGGRESSIVE override - keep overriding the function every 100ms for 2 seconds
-        let overrideAttempts = 0;
-        const maxOverrideAttempts = 20;
-        
-        const overrideInterval = setInterval(() => {
-            if (overrideAttempts >= maxOverrideAttempts) {
-                clearInterval(overrideInterval);
-                return;
-            }
-            
-            window.showWelcomeScreen = forceCorrectWelcomeScreen;
-            window.loadExampleQueries = loadExampleQueries;
-            overrideAttempts++;
-            
-            // Also force correct display if chat-messages exists
-            const chatMessages = document.getElementById('chat-messages');
-            if (chatMessages && chatMessages.innerHTML.includes('welcome-actions')) {
-                console.log('🛡️ Detected unwanted buttons, forcing correct display');
-                forceCorrectWelcomeScreen();
-            }
-        }, 100);
-        
-        // === COMPATIBILITY CHECKS ===
-        setTimeout(() => {
-            const requiredFunctions = [
-                'sendMessage', 'saveSettings', 
-                'refreshData', 'startSetupWizard', 'exportConfig', 
-                'importConfig'
-            ];
-            
-            const missingFunctions = requiredFunctions.filter(fn => typeof window[fn] !== 'function');
-            
-            if (missingFunctions.length > 0) {
-                console.warn('⚠️ Missing functions:', missingFunctions);
-            } else {
-                console.log('✅ All required functions available');
-            }
-            
-            if (typeof CONFIG === 'undefined') {
-                console.warn('⚠️ CONFIG object not found');
-            } else {
-                console.log('✅ CONFIG loaded');
-            }
-            
-            // Check current state
-            const settingsPanel = document.getElementById('settings-panel');
-            if (settingsPanel) {
-                console.log('✅ Settings panel found');
-                console.log('💡 To see footer buttons, click "Nastavení" in the menu');
-            } else {
-                console.warn('⚠️ Settings panel not found');
-            }
-            
-            // Confirm toggleSettings override
-            if (window.toggleSettings === toggleSettings) {
-                console.log('✅ toggleSettings successfully overridden');
-            } else {
-                console.warn('⚠️ toggleSettings override failed, trying again...');
-                window.toggleSettings = toggleSettings;
-            }
-        }, 4000); // Wait even longer for all scripts to load
+        };
     </script>
 </body>
 </html>
