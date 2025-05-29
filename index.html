@@ -4,6 +4,388 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Connect AI | MELIORO Systems</title>
+    
+    <!-- Styly -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="settings-styles.css">
+    <link rel="stylesheet" href="wizard-styles.css">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <h1><a href="#" onclick="location.reload(); return false;" class="header-logo-link">My Connect AI</a></h1>
+                <div class="header-subtitle">Hybridní AI Connect systém je připraven k použití</div>
+            </div>
+            <div class="header-buttons">
+                <button class="index-button" onclick="uiManager.showWelcomeScreen()" title="Zpět na úvodní stranu">
+                    Index
+                </button>
+                <div class="dropdown">
+                    <button class="menu-button" onclick="uiManager.toggleMainMenu()">
+                        Menu
+                    </button>
+                    <div class="dropdown-content" id="mainMenu">
+                        <button class="dropdown-item" onclick="uiManager.showSystemHelp(); uiManager.closeMainMenu();">
+                            Jak systém funguje
+                        </button>
+                        <button class="dropdown-item" onclick="uiManager.showDataProtection(); uiManager.closeMainMenu();">
+                            Ochrana dat
+                        </button>
+                        <button class="dropdown-item" onclick="refreshData(); uiManager.closeMainMenu();">
+                            Obnovit data
+                        </button>
+                        <button class="dropdown-item" onclick="runDiagnosticsManual(); uiManager.closeMainMenu();">
+                            Diagnostika
+                        </button>
+                        <button class="dropdown-item" onclick="settingsManager.toggle(); uiManager.closeMainMenu();">
+                            Nastavení
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- NASTAVENÍ PANEL -->
+        <div id="settings-panel" class="settings-panel" style="display: none;">
+            <div class="settings-title">Nastavení systému</div>
+            
+            <!-- BLOK: AI MODELY -->
+            <div class="settings-block">
+                <div class="block-title">🤖 AI Modely</div>
+                <div class="block-description">Vyberte a nastavte AI model pro komunikaci</div>
+                
+                <div class="settings-section">
+                    <label>Zvolený AI model</label>
+                    <select id="ai-model-select" onchange="settingsManager.updateAIModelDisplay()">
+                        <option value="openai">OpenAI (ChatGPT)</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="claude">Anthropic Claude</option>
+                    </select>
+                    <small>Vyberte preferovaný AI model pro komunikaci</small>
+                </div>
+                
+                <!-- OpenAI nastavení -->
+                <div id="openai-settings" class="ai-model-settings">
+                    <div class="settings-section">
+                        <label for="openai-key">OpenAI API klíč</label>
+                        <div class="input-group">
+                            <input type="password" id="openai-key" placeholder="sk-...">
+                            <button onclick="uiManager.toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
+                        </div>
+                        <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
+                    </div>
+                </div>
+                
+                <!-- Gemini nastavení -->
+                <div id="gemini-settings" class="ai-model-settings" style="display: none;">
+                    <div class="settings-section">
+                        <label for="gemini-key">Google Gemini API klíč</label>
+                        <div class="input-group">
+                            <input type="password" id="gemini-key" placeholder="AIza...">
+                            <button onclick="uiManager.toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
+                        </div>
+                        <small>Získejte na <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></small>
+                    </div>
+                </div>
+                
+                <!-- Claude nastavení -->
+                <div id="claude-settings" class="ai-model-settings" style="display: none;">
+                    <div class="settings-section">
+                        <label for="claude-key">Anthropic Claude API klíč</label>
+                        <div class="input-group">
+                            <input type="password" id="claude-key" placeholder="sk-ant-...">
+                            <button onclick="uiManager.toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
+                        </div>
+                        <small>Získejte na <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- BLOK: APLIKACE -->
+            <div class="settings-block">
+                <div class="block-title">📊 Připojené aplikace</div>
+                <div class="block-description">Nastavení připojení k vašim datovým zdrojům</div>
+                
+                <!-- Tabidoo -->
+                <div class="app-connector">
+                    <div class="app-connector-header">
+                        <div class="app-connector-info">
+                            <strong>Tabidoo CRM</strong>
+                            <span class="app-connector-status" id="tabidoo-status">Nepřipojeno</span>
+                        </div>
+                        <button class="app-connector-toggle" onclick="uiManager.toggleAppConnector('tabidoo')">Nastavit</button>
+                    </div>
+                    
+                    <div id="tabidoo-connector" class="app-connector-settings" style="display: none;">
+                        <div class="settings-section">
+                            <label for="tabidoo-app-id">App ID</label>
+                            <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
+                            <small>Název vaší aplikace v Tabidoo</small>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <label for="tabidoo-token">API Token</label>
+                            <div class="input-group">
+                                <input type="password" id="tabidoo-token" placeholder="eyJ...">
+                                <button onclick="uiManager.toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
+                            </div>
+                            <small>Najdete v Tabidoo → Nastavení → API</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Připraveno pro další aplikace -->
+                <div class="app-connector future-connector">
+                    <div class="app-connector-header">
+                        <div class="app-connector-info">
+                            <strong>Další aplikace</strong>
+                            <span class="app-connector-status">Připravujeme</span>
+                        </div>
+                        <button class="app-connector-toggle" disabled>Brzy</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- BLOK: OBECNÉ NASTAVENÍ -->
+            <div class="settings-block">
+                <div class="block-title">⚙️ Obecné nastavení</div>
+                <div class="block-description">Vzhled a správa konfigurace</div>
+                
+                <div class="settings-section">
+                    <label>Barevné schéma</label>
+                    <div class="theme-selector">
+                        <div class="theme-option theme-claude active" onclick="uiManager.setTheme('claude')" title="Claude (výchozí)"></div>
+                        <div class="theme-option theme-google" onclick="uiManager.setTheme('google')" title="Google"></div>
+                        <div class="theme-option theme-replit" onclick="uiManager.setTheme('replit')" title="Replit"></div>
+                    </div>
+                    <small>Vyberte barevné schéma rozhraní</small>
+                </div>
+                
+                <div class="settings-section">
+                    <label>Správa konfigurace</label>
+                    <div class="config-actions">
+                        <button onclick="exportConfig()" class="config-btn">
+                            📤 Export konfigurace
+                        </button>
+                        <button onclick="importConfig()" class="config-btn">
+                            📥 Import konfigurace
+                        </button>
+                        <button onclick="startSetupWizard(); settingsManager.close();" class="config-btn">
+                            🧙‍♂️ Průvodce nastavením
+                        </button>
+                        <button onclick="settingsManager.clearAllData()" class="config-btn danger">
+                            🗑️ Vymazat vše
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-actions">
+                <button onclick="settingsManager.save()" class="primary-btn">Uložit nastavení</button>
+                <button onclick="settingsManager.close()" class="secondary-btn">Zrušit</button>
+            </div>
+            
+            <div class="security-info">
+                Všechny API klíče jsou šifrovány a ukládány pouze lokálně ve vašem prohlížeči.
+            </div>
+        </div>
+        
+        <div id="embeddings-status" class="embeddings-status" style="display: none;">
+            <span id="embeddings-text">Vytvářím vyhledávací index...</span>
+            <div class="progress-bar">
+                <div id="embeddings-progress" class="progress-fill"></div>
+            </div>
+        </div>
+        
+        <div id="chat-messages" class="chat-messages">
+            <div class="welcome-container">
+                <div class="example-queries" id="example-queries">
+                    <!-- Příklady budou načteny dynamicky -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-area" id="chat-input-area">
+            <textarea id="chat-input" class="chat-input" placeholder="Zeptejte se na cokoliv o vašich datech..." rows="1"></textarea>
+            <button id="send-button" class="send-button" onclick="sendMessage()">
+                Odeslat
+            </button>
+        </div>
+        
+        <!-- PATIČKA -->
+        <div class="app-footer">
+            <div class="footer-content">
+                <span class="footer-text">Powered by <a href="http://melioro.cz" target="_blank" rel="noopener noreferrer" class="footer-link"><strong>MELIORO Systems</strong></a></span>
+                <span class="footer-domain">myconnectai.online</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SKRIPTY - Modulární struktura -->
+    
+    <!-- Základní moduly -->
+    <script src="security.js"></script>
+    <script src="config.js"></script>
+    
+    <!-- Nové moduly pro rozšíření -->
+    <script src="ai-models.js"></script>
+    <script src="app-connectors.js"></script>
+    <script src="ui-manager.js"></script>
+    <script src="settings-manager.js"></script>
+    
+    <!-- Funkční moduly -->
+    <script src="display.js"></script>
+    <script src="data-loader.js"></script>
+    <script src="local-search.js"></script>
+    <script src="query-processor.js"></script>
+    <script src="setup-wizard.js"></script>
+    <script src="wizard-integration.js"></script>
+    
+    <!-- Hlavní aplikační logika -->
+    <script src="main.js"></script>
+    
+    <!-- Kompatibilní funkce a inicializace -->
+    <script>
+        // Kompatibilní funkce pro existující kód
+        function refreshData() {
+            if (!confirm('Opravdu chcete znovu načíst data?')) return;
+            
+            // Vymazat cache
+            if (typeof CONFIG !== 'undefined' && CONFIG.CACHE) {
+                localStorage.removeItem(CONFIG.CACHE.DATA_KEY);
+                localStorage.removeItem(CONFIG.CACHE.DATA_TIMESTAMP_KEY);
+            }
+            
+            location.reload();
+        }
+        
+        function runDiagnosticsManual() {
+            if (typeof CONFIG !== 'undefined' && CONFIG.CACHE && CONFIG.CACHE.DIAGNOSTICS_KEY) {
+                localStorage.removeItem(CONFIG.CACHE.DIAGNOSTICS_KEY);
+            }
+            location.reload();
+        }
+        
+        function exportConfig() {
+            if (settingsManager) {
+                const config = settingsManager.exportConfiguration();
+                const exportKey = prompt('Zadejte heslo pro export (zapamatujte si ho):');
+                if (!exportKey) return;
+                
+                const encrypted = security.encrypt(JSON.stringify(config), exportKey);
+                
+                const blob = new Blob([encrypted], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `myconnectai-config-${Date.now()}.enc`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+        
+        function importConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.enc';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const encrypted = await file.text();
+                const exportKey = prompt('Zadejte heslo pro import:');
+                if (!exportKey) return;
+                
+                try {
+                    const decrypted = security.decrypt(encrypted, exportKey);
+                    const config = JSON.parse(decrypted);
+                    
+                    if (settingsManager) {
+                        await settingsManager.importConfiguration(config);
+                        alert('Konfigurace úspěšně importována!');
+                        location.reload();
+                    }
+                } catch (error) {
+                    alert('Chyba při importu: Nesprávné heslo nebo poškozený soubor');
+                }
+            };
+            
+            input.click();
+        }
+        
+        function startSetupWizard() {
+            if (typeof setupWizard !== 'undefined' && setupWizard.start) {
+                setupWizard.start();
+            } else {
+                console.error('Setup wizard not available');
+                alert('Průvodce nastavením není dostupný. Zkuste obnovit stránku.');
+            }
+        }
+        
+        function cancelSetupWizard() {
+            if (confirm('Opravdu chcete zrušit průvodce nastavením?')) {
+                sessionStorage.removeItem('wizardStartedFromSettings');
+                if (uiManager) {
+                    uiManager.showWelcomeScreen();
+                } else {
+                    location.reload();
+                }
+            }
+        }
+        
+        // Zachování kompatibility s existujícím kódem
+        window.toggleSettings = () => settingsManager?.toggle();
+        window.saveSettings = () => settingsManager?.save();
+        window.showWelcomeScreen = () => uiManager?.showWelcomeScreen();
+        window.showSystemHelp = () => uiManager?.showSystemHelp();
+        window.showDataProtection = () => uiManager?.showDataProtection();
+        window.addMessage = (...args) => uiManager?.addMessage(...args);
+        window.addDiagnosticMessage = (...args) => uiManager?.addDiagnosticMessage(...args);
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.matches('.menu-button') && !event.target.closest('.dropdown')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content');
+                for (let dropdown of dropdowns) {
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            }
+        });
+        
+        console.log('🚀 My Connect AI - Modular structure loaded');
+    </script>
+</body>
+</html>        // === ENHANCED LOAD CONFIG ===
+        function loadConfig() {
+            APP_CONFIG.OPENAI_API_KEY = security.loadSecure('openai_key') || '';
+            APP_CONFIG.GEMINI_API_KEY = security.loadSecure('gemini_key') || '';
+            APP_CONFIG.CLAUDE_API_KEY = security.loadSecure('claude_key') || '';
+            APP_CONFIG.TABIDOO_API_TOKEN = security.loadSecure('tabidoo_token') || '';
+            APP_CONFIG.TABIDOO_APP_ID = security.loadSecure('tabidoo_app_id') || '';
+            APP_CONFIG.SELECTED_AI_MODEL = localStorage.getItem('selected_ai_model') || 'openai';
+            
+            console.log('Config loaded:', {
+                hasOpenAI: !!APP_CONFIG.OPENAI_API_KEY,
+                hasGemini: !!APP_CONFIG.GEMINI_API_KEY,
+                hasClaude: !!APP_CONFIG.CLAUDE_API_KEY,
+                hasTabidoo: !!APP_CONFIG.TABIDOO_API_TOKEN,
+                hasAppId: !!APP_CONFIG.TABIDOO_APP_ID,
+                selectedAI: APP_CONFIG.SELECTED_AI_MODEL
+            });
+        }
+        
+        // === HELPER FUNCTIONS ===<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Connect AI | MELIORO Systems</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="wizard-styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
@@ -45,40 +427,137 @@
         </div>
         
         <div id="settings-panel" class="settings-panel" style="display: none;">
-            <div class="settings-title">Nastavení API</div>
+            <div class="settings-title">Nastavení systému</div>
             
-            <div class="settings-section">
-                <label for="openai-key">OpenAI API klíč</label>
-                <div class="input-group">
-                    <input type="password" id="openai-key" placeholder="sk-...">
-                    <button onclick="toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
+            <!-- BLOK: AI MODELY -->
+            <div class="settings-block">
+                <div class="block-title">🤖 AI Modely</div>
+                <div class="block-description">Vyberte a nastavte AI model pro komunikaci</div>
+                
+                <div class="settings-section">
+                    <label>Zvolený AI model</label>
+                    <select id="ai-model-select" onchange="toggleAIModelSettings()">
+                        <option value="openai">OpenAI (ChatGPT)</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="claude">Anthropic Claude</option>
+                    </select>
+                    <small>Vyberte preferovaný AI model pro komunikaci</small>
                 </div>
-                <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
+                
+                <!-- OpenAI nastavení -->
+                <div id="openai-settings" class="ai-model-settings">
+                    <div class="settings-section">
+                        <label for="openai-key">OpenAI API klíč</label>
+                        <div class="input-group">
+                            <input type="password" id="openai-key" placeholder="sk-...">
+                            <button onclick="toggleVisibility('openai-key')" class="toggle-btn">Zobrazit</button>
+                        </div>
+                        <small>Získejte na <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a></small>
+                    </div>
+                </div>
+                
+                <!-- Gemini nastavení -->
+                <div id="gemini-settings" class="ai-model-settings" style="display: none;">
+                    <div class="settings-section">
+                        <label for="gemini-key">Google Gemini API klíč</label>
+                        <div class="input-group">
+                            <input type="password" id="gemini-key" placeholder="AIza...">
+                            <button onclick="toggleVisibility('gemini-key')" class="toggle-btn">Zobrazit</button>
+                        </div>
+                        <small>Získejte na <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></small>
+                    </div>
+                </div>
+                
+                <!-- Claude nastavení -->
+                <div id="claude-settings" class="ai-model-settings" style="display: none;">
+                    <div class="settings-section">
+                        <label for="claude-key">Anthropic Claude API klíč</label>
+                        <div class="input-group">
+                            <input type="password" id="claude-key" placeholder="sk-ant-...">
+                            <button onclick="toggleVisibility('claude-key')" class="toggle-btn">Zobrazit</button>
+                        </div>
+                        <small>Získejte na <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></small>
+                    </div>
+                </div>
             </div>
             
-            <div class="settings-section">
-                <label for="tabidoo-token">Tabidoo API token</label>
-                <div class="input-group">
-                    <input type="password" id="tabidoo-token" placeholder="eyJ...">
-                    <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
+            <!-- BLOK: APLIKACE -->
+            <div class="settings-block">
+                <div class="block-title">📊 Připojené aplikace</div>
+                <div class="block-description">Nastavení připojení k vašim datovým zdrojům</div>
+                
+                <!-- Tabidoo -->
+                <div class="app-connector">
+                    <div class="app-connector-header">
+                        <div class="app-connector-info">
+                            <strong>Tabidoo CRM</strong>
+                            <span class="app-connector-status" id="tabidoo-status">Nepřipojeno</span>
+                        </div>
+                        <button class="app-connector-toggle" onclick="toggleAppConnector('tabidoo')">Nastavit</button>
+                    </div>
+                    
+                    <div id="tabidoo-connector" class="app-connector-settings" style="display: none;">
+                        <div class="settings-section">
+                            <label for="tabidoo-app-id">App ID</label>
+                            <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
+                            <small>Název vaší aplikace v Tabidoo</small>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <label for="tabidoo-token">API Token</label>
+                            <div class="input-group">
+                                <input type="password" id="tabidoo-token" placeholder="eyJ...">
+                                <button onclick="toggleVisibility('tabidoo-token')" class="toggle-btn">Zobrazit</button>
+                            </div>
+                            <small>Najdete v Tabidoo → Nastavení → API</small>
+                        </div>
+                    </div>
                 </div>
-                <small>Najdete v Tabidoo → Nastavení → API</small>
+                
+                <!-- Připraveno pro další aplikace -->
+                <div class="app-connector future-connector">
+                    <div class="app-connector-header">
+                        <div class="app-connector-info">
+                            <strong>Další aplikace</strong>
+                            <span class="app-connector-status">Připravujeme</span>
+                        </div>
+                        <button class="app-connector-toggle" disabled>Brzy</button>
+                    </div>
+                </div>
             </div>
             
-            <div class="settings-section">
-                <label for="tabidoo-app-id">Tabidoo App ID</label>
-                <input type="text" id="tabidoo-app-id" placeholder="CRM Start">
-                <small>Název vaší aplikace v Tabidoo</small>
-            </div>
-
-            <div class="settings-section">
-                <label>Barevné schéma</label>
-                <div class="theme-selector">
-                    <div class="theme-option theme-claude active" onclick="setAppTheme('claude')" title="Claude (výchozí)"></div>
-                    <div class="theme-option theme-google" onclick="setAppTheme('google')" title="Google"></div>
-                    <div class="theme-option theme-replit" onclick="setAppTheme('replit')" title="Replit"></div>
+            <!-- BLOK: OBECNÉ NASTAVENÍ -->
+            <div class="settings-block">
+                <div class="block-title">⚙️ Obecné nastavení</div>
+                <div class="block-description">Vzhled a správa konfigurace</div>
+                
+                <div class="settings-section">
+                    <label>Barevné schéma</label>
+                    <div class="theme-selector">
+                        <div class="theme-option theme-claude active" onclick="setAppTheme('claude')" title="Claude (výchozí)"></div>
+                        <div class="theme-option theme-google" onclick="setAppTheme('google')" title="Google"></div>
+                        <div class="theme-option theme-replit" onclick="setAppTheme('replit')" title="Replit"></div>
+                    </div>
+                    <small>Vyberte barevné schéma rozhraní</small>
                 </div>
-                <small>Vyberte barevné schéma rozhraní</small>
+                
+                <div class="settings-section">
+                    <label>Správa konfigurace</label>
+                    <div class="config-actions">
+                        <button onclick="exportConfig()" class="config-btn">
+                            📤 Export konfigurace
+                        </button>
+                        <button onclick="importConfig()" class="config-btn">
+                            📥 Import konfigurace
+                        </button>
+                        <button onclick="startSetupWizard(); toggleSettings();" class="config-btn">
+                            🧙‍♂️ Průvodce nastavením
+                        </button>
+                        <button onclick="clearAllData()" class="config-btn danger">
+                            🗑️ Vymazat vše
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <div class="settings-actions">
@@ -185,7 +664,157 @@
             }
         });
 
-        // === HELPER FUNCTIONS ===
+        // === AI MODEL MANAGEMENT ===
+        function toggleAIModelSettings() {
+            const selectedModel = document.getElementById('ai-model-select').value;
+            
+            // Skrýt všechna nastavení AI modelů
+            document.querySelectorAll('.ai-model-settings').forEach(settings => {
+                settings.style.display = 'none';
+            });
+            
+            // Zobrazit vybrané nastavení
+            const selectedSettings = document.getElementById(selectedModel + '-settings');
+            if (selectedSettings) {
+                selectedSettings.style.display = 'block';
+            }
+            
+            console.log('🤖 AI model changed to:', selectedModel);
+        }
+        
+        // === APP CONNECTOR MANAGEMENT ===
+        function toggleAppConnector(appName) {
+            const connector = document.getElementById(appName + '-connector');
+            const button = event.target;
+            
+            if (connector.style.display === 'none' || !connector.style.display) {
+                connector.style.display = 'block';
+                button.textContent = 'Skrýt';
+            } else {
+                connector.style.display = 'none';
+                button.textContent = 'Nastavit';
+            }
+        }
+        
+        function updateAppStatus(appName, status) {
+            const statusElement = document.getElementById(appName + '-status');
+            if (statusElement) {
+                statusElement.textContent = status;
+                statusElement.className = 'app-connector-status ' + status.toLowerCase().replace(' ', '-');
+            }
+        }
+        
+        // === ENHANCED SAVE SETTINGS ===
+        function saveSettings() {
+            // Získat aktuální AI model
+            const selectedAIModel = document.getElementById('ai-model-select').value;
+            
+            // Uložit AI model preference
+            localStorage.setItem('selected_ai_model', selectedAIModel);
+            
+            // Uložit API klíče podle vybraného modelu
+            const openaiKey = document.getElementById('openai-key').value.trim();
+            const geminiKey = document.getElementById('gemini-key').value.trim();
+            const claudeKey = document.getElementById('claude-key').value.trim();
+            
+            if (openaiKey) {
+                security.saveSecure('openai_key', openaiKey);
+                APP_CONFIG.OPENAI_API_KEY = openaiKey;
+            }
+            if (geminiKey) {
+                security.saveSecure('gemini_key', geminiKey);
+                APP_CONFIG.GEMINI_API_KEY = geminiKey;
+            }
+            if (claudeKey) {
+                security.saveSecure('claude_key', claudeKey);
+                APP_CONFIG.CLAUDE_API_KEY = claudeKey;
+            }
+            
+            // Uložit Tabidoo nastavení
+            const tabidooToken = document.getElementById('tabidoo-token').value.trim();
+            const tabidooAppId = document.getElementById('tabidoo-app-id').value.trim();
+            
+            if (tabidooToken) {
+                security.saveSecure('tabidoo_token', tabidooToken);
+                APP_CONFIG.TABIDOO_API_TOKEN = tabidooToken;
+                updateAppStatus('tabidoo', 'Připojeno');
+            }
+            
+            if (tabidooAppId) {
+                security.saveSecure('tabidoo_app_id', tabidooAppId);
+                APP_CONFIG.TABIDOO_APP_ID = tabidooAppId;
+            }
+            
+            console.log('💾 Settings saved with AI model:', selectedAIModel);
+            alert('Nastavení bezpečně uloženo!');
+            toggleSettings();
+            
+            // Reload pokud jsou potřeba nová data
+            if (Object.keys(tablesData).length === 0 && APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID) {
+                location.reload();
+            }
+        }
+        
+        // === ENHANCED TOGGLE SETTINGS ===
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            if (!panel) {
+                console.error('Settings panel not found!');
+                return;
+            }
+            
+            const isHidden = panel.style.display === 'none' || !panel.style.display;
+            
+            if (isHidden) {
+                panel.style.display = 'block';
+                
+                // Načíst uložená nastavení
+                loadSettingsValues();
+                
+                // Zobrazit správný AI model
+                setTimeout(() => {
+                    toggleAIModelSettings();
+                }, 50);
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        // === LOAD SETTINGS VALUES ===
+        function loadSettingsValues() {
+            // Načíst AI model preference
+            const savedAIModel = localStorage.getItem('selected_ai_model') || 'openai';
+            document.getElementById('ai-model-select').value = savedAIModel;
+            
+            // Načíst API klíče
+            const openaiField = document.getElementById('openai-key');
+            const geminiField = document.getElementById('gemini-key');
+            const claudeField = document.getElementById('claude-key');
+            const tabidooField = document.getElementById('tabidoo-token');
+            const appIdField = document.getElementById('tabidoo-app-id');
+            
+            // Vyčistit všechna pole
+            openaiField.value = '';
+            geminiField.value = '';
+            claudeField.value = '';
+            tabidooField.value = '';
+            
+            // Nastavit placeholdery
+            openaiField.placeholder = APP_CONFIG.OPENAI_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'sk-...';
+            geminiField.placeholder = APP_CONFIG.GEMINI_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'AIza...';
+            claudeField.placeholder = APP_CONFIG.CLAUDE_API_KEY ? 'API klíč je nastaven (pro změnu zadejte nový)' : 'sk-ant-...';
+            tabidooField.placeholder = APP_CONFIG.TABIDOO_API_TOKEN ? 'Token je nastaven (pro změnu zadejte nový)' : 'eyJ...';
+            
+            // App ID
+            appIdField.value = APP_CONFIG.TABIDOO_APP_ID || '';
+            
+            // Aktualizovat status aplikací
+            if (APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID) {
+                updateAppStatus('tabidoo', 'Připojeno');
+            } else {
+                updateAppStatus('tabidoo', 'Nepřipojeno');
+            }
+        }
         function toggleVisibility(fieldId) {
             const field = document.getElementById(fieldId);
             if (!field) return;
