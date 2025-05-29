@@ -1,4 +1,4 @@
-// Hlavní aplikační logika - My Connect AI - KOMPLETNĚ ČISTÁ VERZE
+// Hlavní aplikační logika - My Connect AI - FINÁLNÍ OPRAVENÁ VERZE
 
 // Globální proměnné
 let APP_CONFIG = {};
@@ -8,6 +8,7 @@ let queryProcessor = null;
 
 // Načtení konfigurace
 function loadConfig() {
+    // Základní nastavení
     APP_CONFIG.OPENAI_API_KEY = security.loadSecure('openai_key') || '';
     APP_CONFIG.GEMINI_API_KEY = security.loadSecure('gemini_key') || '';
     APP_CONFIG.CLAUDE_API_KEY = security.loadSecure('claude_key') || '';
@@ -25,7 +26,7 @@ function loadConfig() {
     });
 }
 
-// Odeslání zprávy
+// Odeslání zprávy s hybridním přístupem
 async function sendMessage() {
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
@@ -101,11 +102,11 @@ async function formatWithSelectedAI(userQuery, localResult) {
         return await formatWithOpenAI(userQuery, localResult);
     } catch (error) {
         console.error('AI formatting error:', error);
-        return localResult.response;
+        return localResult.response; // Fallback na lokální odpověď
     }
 }
 
-// Fallback OpenAI implementace
+// Fallback OpenAI implementace - ZACHOVÁNA PŮVODNÍ FUNKCIONALITA
 async function formatWithOpenAI(userQuery, localResult) {
     if (!APP_CONFIG.OPENAI_API_KEY) {
         throw new Error('Není nastaven API klíč pro AI model');
@@ -203,7 +204,7 @@ function getRecordCount(table) {
     return 0;
 }
 
-// Hlavní hybridní inicializace
+// Hlavní hybridní inicializace - OPRAVENO BEZ SYNTAKTICKÝCH CHYB
 async function hybridInit() {
     console.log('🚀 Starting hybrid initialization...');
     
@@ -219,9 +220,11 @@ async function hybridInit() {
     
     const chatMessages = document.getElementById('chat-messages');
     
-    // Pokud nemáme API klíče - zobrazit welcome screen
-    if (!APP_CONFIG.TABIDOO_API_TOKEN || !APP_CONFIG.TABIDOO_APP_ID) {
-        console.log('🔧 No API keys, showing welcome screen...');
+    // Kontrola základní konfigurace
+    const hasBasicConfig = APP_CONFIG.TABIDOO_API_TOKEN && APP_CONFIG.TABIDOO_APP_ID;
+    
+    if (!hasBasicConfig) {
+        console.log('🔧 No basic config, showing welcome screen...');
         if (window.uiManager) {
             window.uiManager.showWelcomeScreen();
         }
@@ -234,23 +237,33 @@ async function hybridInit() {
     }
     
     try {
-        // Načíst data pomocí app connectors manageru
-        console.log('📊 Loading data via app connectors...');
+        // Načíst data
+        console.log('📊 Loading application data...');
+        let dataLoaded = false;
+        
+        // Pokus o načtení přes app connectors manager
         if (window.appConnectorsManager) {
-            tablesData = await window.appConnectorsManager.loadData('tabidoo');
-        } else if (typeof loadTabidooData === 'function') {
-            // Fallback na původní načítání
-            const dataLoaded = await loadTabidooData();
-            if (!dataLoaded) {
-                throw new Error('Failed to load data');
+            try {
+                tablesData = await window.appConnectorsManager.loadData('tabidoo');
+                dataLoaded = Object.keys(tablesData).length > 0;
+                console.log('✅ Data loaded via app connectors:', Object.keys(tablesData));
+            } catch (error) {
+                console.warn('⚠️ App connectors failed, trying fallback:', error);
             }
-        } else {
-            throw new Error('No data loading method available');
         }
         
-        // Kontrola načtených dat
-        if (!tablesData || Object.keys(tablesData).length === 0) {
-            throw new Error('No data loaded');
+        // Fallback na původní načítání z data-loader.js
+        if (!dataLoaded && typeof loadTabidooData === 'function') {
+            try {
+                dataLoaded = await loadTabidooData();
+                console.log('✅ Data loaded via fallback method');
+            } catch (error) {
+                console.error('❌ Fallback data loading failed:', error);
+            }
+        }
+        
+        if (!dataLoaded) {
+            throw new Error('Failed to load any data');
         }
         
         // Inicializovat query processor
@@ -300,14 +313,14 @@ window.addEventListener('load', function() {
     setTimeout(hybridInit, 100);
 });
 
-// Alternativní spuštění pro případ načtení
+// Alternativní spuštění pro případ, že window.onload již proběhl
 if (document.readyState === 'complete') {
     setTimeout(hybridInit, 100);
 } else if (document.readyState === 'interactive') {
     setTimeout(hybridInit, 200);
 }
 
-// Export pro globální použití
+// Export pro testování a kompatibilitu
 window.hybridSystem = {
     queryProcessor: () => queryProcessor,
     tablesData: () => tablesData,
@@ -322,14 +335,14 @@ window.hybridSystem = {
     }
 };
 
-// Globální funkce pro kompatibilitu
+// Zachování kompatibility s existujícím kódem
 window.APP_CONFIG = APP_CONFIG;
 window.loadConfig = loadConfig;
 window.hybridInit = hybridInit;
 window.sendMessage = sendMessage;
 window.getSystemStats = getSystemStats;
 
-// Debug funkce
+// Debugging a monitoring
 window.debugInfo = function() {
     return {
         config: APP_CONFIG,
@@ -348,4 +361,4 @@ window.debugInfo = function() {
     };
 };
 
-console.log('📦 Main.js loaded successfully');
+console.log('📦 Main.js loaded successfully - all functionality preserved');
