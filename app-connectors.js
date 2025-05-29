@@ -177,7 +177,7 @@ class AppConnectorsManager {
         }
     }
     
-    // Načíst Tabidoo data - OPRAVENÁ VERZE (použití CONFIG.TABLES)
+    // Načíst Tabidoo data - FINÁLNÍ VERZE (pouze CONFIG.TABLES, žádné /tables API)
     async loadTabidooData(options = {}) {
         const appId = security.loadSecure('tabidoo_app_id');
         const apiToken = security.loadSecure('tabidoo_token');
@@ -186,25 +186,25 @@ class AppConnectorsManager {
             throw new Error('Tabidoo není nakonfigurováno');
         }
         
-        console.log('🔗 Loading Tabidoo data using CONFIG.TABLES...');
+        console.log('🔗 Loading Tabidoo data using CONFIG.TABLES (no /tables API call)...');
         
-        // ZMĚNA: Použít CONFIG.TABLES místo dynamického zjišťování
+        // PRO TABIDOO: Použít pouze CONFIG.TABLES (žádné dynamické zjišťování)
         if (!CONFIG || !CONFIG.TABLES || !Array.isArray(CONFIG.TABLES)) {
             throw new Error('CONFIG.TABLES není dostupný nebo není pole');
         }
         
-        const tables = CONFIG.TABLES;
-        console.log(`📊 Using ${tables.length} tables from CONFIG:`, tables.map(t => t.name));
+        const configTables = CONFIG.TABLES;
+        console.log(`📊 Using ${configTables.length} tables from CONFIG:`, configTables.map(t => t.name));
         
         const finalTablesData = {};
         
         // Načíst data z každé tabulky (stejná logika jako původní data-loader.js)
-        for (const table of tables) {
+        for (const configTable of configTables) {
             try {
-                console.log(`📥 Loading data from table: ${table.name} (${table.id})`);
+                console.log(`📥 Loading data from table: ${configTable.name} (${configTable.id})`);
                 
                 const dataResponse = await fetch(
-                    `${this.connectors.tabidoo.apiBaseUrl}/apps/${appId}/tables/${table.id}/data?limit=${options.limit || 100}`,
+                    `${this.connectors.tabidoo.apiBaseUrl}/apps/${appId}/tables/${configTable.id}/data?limit=${options.limit || 100}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${apiToken}`,
@@ -218,17 +218,17 @@ class AppConnectorsManager {
                     const recordCount = this.getRecordCount(data);
                     
                     // ZACHOVAT PŮVODNÍ FORMÁT: stejný jako v data-loader.js
-                    finalTablesData[table.id] = {
-                        name: table.name,
+                    finalTablesData[configTable.id] = {
+                        name: configTable.name,
                         data: data  // Přímo raw API response
                     };
                     
-                    console.log(`✅ Načtena tabulka ${table.name}: ${recordCount} záznamů`);
+                    console.log(`✅ Načtena tabulka ${configTable.name}: ${recordCount} záznamů`);
                 } else {
-                    console.warn(`⚠️ Nelze načíst tabulku ${table.name} (HTTP ${dataResponse.status})`);
+                    console.warn(`⚠️ Nelze načíst tabulku ${configTable.name} (HTTP ${dataResponse.status})`);
                 }
             } catch (error) {
-                console.error(`❌ Chyba při načítání tabulky ${table.name}:`, error);
+                console.error(`❌ Chyba při načítání tabulky ${configTable.name}:`, error);
             }
         }
         
@@ -420,4 +420,4 @@ if (typeof window !== 'undefined') {
     window.appConnectorsManager = appConnectorsManager;
 }
 
-console.log('🔗 App Connectors Manager loaded successfully - Tabidoo uses CONFIG.TABLES');
+console.log('🔗 App Connectors Manager loaded - Tabidoo uses CONFIG.TABLES only');
