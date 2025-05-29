@@ -5,23 +5,44 @@ class SettingsManager {
         this.hasUnsavedChanges = false;
         this.currentTab = 'ai-models';
         
-        // Reference na ostatní managery
+        // Reference na ostatní managery - initially null
         this.aiModels = null;
         this.appConnectors = null;
         this.uiManager = null;
         
+        // Delayed initialization
         this.initializeManagers();
         this.setupEventListeners();
+        
+        console.log('⚙️ Settings Manager initialized');
     }
     
     // Inicializace referencí na ostatní managery
     initializeManagers() {
-        // Počkat na načtení ostatních managerů
-        setTimeout(() => {
-            this.aiModels = window.aiModelsManager;
-            this.appConnectors = window.appConnectorsManager;
-            this.uiManager = window.uiManager;
-        }, 100);
+        // Použít více pokusů o získání referencí
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        const tryGetReferences = () => {
+            attempts++;
+            
+            if (window.aiModelsManager) this.aiModels = window.aiModelsManager;
+            if (window.appConnectorsManager) this.appConnectors = window.appConnectorsManager;
+            if (window.uiManager) this.uiManager = window.uiManager;
+            
+            const hasAll = this.aiModels && this.appConnectors && this.uiManager;
+            
+            if (hasAll) {
+                console.log('✅ Settings Manager: All references obtained');
+            } else if (attempts < maxAttempts) {
+                setTimeout(tryGetReferences, 100);
+            } else {
+                console.warn('⚠️ Settings Manager: Some references missing after', attempts, 'attempts');
+            }
+        };
+        
+        // První pokus ihned, pak čekání
+        setTimeout(tryGetReferences, 50);
     }
     
     // Nastavit event listenery
