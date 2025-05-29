@@ -9,7 +9,7 @@
 /* === COLOR SCHEMES === */
 :root {
     /* Claude (Default) - AUTENTICKÉ CLAUDE.AI BARVY */
-    --primary-color: #D97706;
+    --primary-color: #C96442;
     --primary-hover: #B45309;
     --secondary-color: #78716C;
     --success-color: #16A34A;
@@ -112,6 +112,16 @@ body {
     letter-spacing: -0.025em;
 }
 
+.header-logo-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.header-logo-link:hover {
+    color: var(--primary-color);
+}
+
 .header-subtitle {
     font-size: 0.875rem;
     color: var(--text-secondary);
@@ -122,6 +132,32 @@ body {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+}
+
+/* === INDEX BUTTON === */
+.index-button {
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+}
+
+.index-button:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.index-button:active {
+    transform: translateY(0);
 }
 
 /* === MENU BUTTON === */
@@ -270,7 +306,7 @@ body {
 .settings-section select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.1);
 }
 
 .toggle-btn {
@@ -335,7 +371,7 @@ body {
 
 .theme-option.active {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.15);
 }
 
 .theme-claude {
@@ -541,9 +577,9 @@ body {
 
 /* === PROGRESS BAR === */
 .embeddings-status {
-    background: rgba(217, 119, 6, 0.05);
+    background: rgba(201, 100, 66, 0.05);
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+    border-bottom: 1px solid rgba(201, 100, 66, 0.1);
     text-align: center;
 }
 
@@ -621,14 +657,14 @@ body {
 }
 
 .system-message {
-    background: rgba(217, 119, 6, 0.1);
+    background: rgba(201, 100, 66, 0.1);
     color: var(--primary-color);
     margin: 1rem auto;
     text-align: center;
     width: fit-content;
     max-width: 95%;
     font-style: italic;
-    border: 1px solid rgba(217, 119, 6, 0.2);
+    border: 1px solid rgba(201, 100, 66, 0.2);
 }
 
 .error-message {
@@ -768,7 +804,7 @@ body {
 
 .chat-input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+    box-shadow: 0 0 0 3px rgba(201, 100, 66, 0.1);
 }
 
 .chat-input::placeholder {
