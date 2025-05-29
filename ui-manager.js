@@ -42,7 +42,7 @@ class UIManager {
         this.setTheme(savedTheme);
     }
     
-    // Nastavit téma - OPRAVENO: aplikovat CSS třídu pro všechna témata
+    // Nastavit téma - OPRAVENO: claude je výchozí bez CSS třídy
     setTheme(themeKey) {
         if (!this.themes[themeKey]) {
             console.warn(`Theme ${themeKey} not found, using claude`);
@@ -52,8 +52,10 @@ class UIManager {
         // Odstranit všechny theme třídy
         document.body.classList.remove('theme-claude', 'theme-google', 'theme-replit');
         
-        // Přidat třídu pro vybrané téma (včetně claude)
-        document.body.classList.add(`theme-${themeKey}`);
+        // Přidat třídu jen pro non-claude témata (claude je výchozí)
+        if (themeKey !== 'claude') {
+            document.body.classList.add(`theme-${themeKey}`);
+        }
         
         // Uložit do localStorage
         localStorage.setItem('selectedAppTheme', themeKey);
