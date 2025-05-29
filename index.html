@@ -24,17 +24,20 @@
                         Menu
                     </button>
                     <div class="dropdown-content" id="mainMenu">
+                        <button class="dropdown-item" onclick="showSystemHelp(); closeMainMenu();">
+                            Jak systém funguje
+                        </button>
+                        <button class="dropdown-item" onclick="showDataProtection(); closeMainMenu();">
+                            Ochrana dat
+                        </button>
                         <button class="dropdown-item" onclick="refreshData(); closeMainMenu();">
                             Obnovit data
-                        </button>
-                        <button class="dropdown-item" onclick="toggleSettings(); closeMainMenu();">
-                            Nastavení
                         </button>
                         <button class="dropdown-item" onclick="runDiagnosticsManual(); closeMainMenu();">
                             Diagnostika
                         </button>
-                        <button class="dropdown-item" onclick="showSystemHelp(); closeMainMenu();">
-                            Jak systém funguje
+                        <button class="dropdown-item" onclick="toggleSettings(); closeMainMenu();">
+                            Nastavení
                         </button>
                     </div>
                 </div>
@@ -382,6 +385,77 @@
             `;
             
             chatMessages.innerHTML = helpContent;
+        }
+        
+        // === DATA PROTECTION INFO ===
+        function showDataProtection() {
+            const chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) return;
+            
+            const dataProtectionContent = `
+                <div class="system-help">
+                    <div class="help-header">
+                        <h3>🔒 Ochrana dat a soukromí</h3>
+                        <button class="help-close-btn" onclick="showWelcomeScreen()">&times;</button>
+                    </div>
+                    
+                    <div class="help-content">
+                        <div class="help-section">
+                            <h4>🛡️ GDPR Compliance</h4>
+                            <p>My Connect AI je plně v souladu s nařízením GDPR. Vaše osobní data jsou chráněna podle nejvyšších evropských standardů a máte plnou kontrolu nad jejich zpracováním.</p>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>🔐 Zabezpečení dat</h4>
+                            <ul class="help-list">
+                                <li><strong>Lokální šifrování:</strong> API klíče jsou šifrovány a uloženy pouze ve vašem prohlížeči</li>
+                                <li><strong>Žádné sledování:</strong> Neukládáme žádné osobní údaje na našich serverech</li>
+                                <li><strong>Přímé připojení:</strong> Komunikujeme přímo s Tabidoo a OpenAI API</li>
+                                <li><strong>Transparentnost:</strong> Veškerý kód je open source a kontrolovatelný</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>👤 Vaše práva</h4>
+                            <ul class="help-list">
+                                <li><strong>Plná kontrola:</strong> Kdykoliv můžete smazat všechna svá data</li>
+                                <li><strong>Export dat:</strong> Můžete exportovat svou konfiguraci</li>
+                                <li><strong>Anonymita:</strong> Nepotřebujeme žádnou registraci ani osobní údaje</li>
+                                <li><strong>Odejít kdykoliv:</strong> Žádné závazky nebo předplatné</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>🏢 Zpracování firemních dat</h4>
+                            <ul class="help-list">
+                                <li><strong>Lokální zpracování:</strong> Veškerá analýza probíhá ve vašem prohlížeči</li>
+                                <li><strong>Bez ukládání:</strong> Neukládáme kopie vašich Tabidoo dat</li>
+                                <li><strong>Šifrovaná komunikace:</strong> Veškerá komunikace probíhá přes HTTPS</li>
+                                <li><strong>Audit trail:</strong> Všechny akce jsou protokolovány pro bezpečnost</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>🌍 Mezinárodní standardy</h4>
+                            <p>Systém My Connect AI dodržuje mezinárodní standardy pro ochranu dat včetně GDPR (EU), CCPA (California), a dalších regionálních předpisů. Vaše data nikdy neopustí váš prohlížeč bez vašeho výslovného souhlasu.</p>
+                        </div>
+                        
+                        <div class="help-section">
+                            <h4>📞 Kontakt a podpora</h4>
+                            <p>V případě dotazů ohledně ochrany dat nás kontaktujte na: <strong>privacy@melioro.cz</strong></p>
+                            <p>Reakce do 24 hodin • Česká podpora • Odborné poradenství</p>
+                        </div>
+                    </div>
+                    
+                    <div class="help-footer" style="background: var(--surface); padding: 1rem 2rem; border-top: 1px solid var(--border); text-align: center;">
+                        <p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary);">
+                            <strong>My Connect AI</strong> - Bezpečný, transparentní a v souladu s GDPR
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.innerHTML = dataProtectionContent;
         }
         
         // === ENHANCED WIZARD FUNCTIONS ===
