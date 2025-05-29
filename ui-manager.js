@@ -432,10 +432,11 @@ class UIManager {
         diagnosticArea.scrollTop = diagnosticArea.scrollHeight;
     }
     
-    // Inicializace UI
+    // Inicializace UI - OPRAVENO
     initialize() {
         console.log('🎨 UI Manager initializing...');
         
+        // Základní inicializace
         this.loadTheme();
         this.setupAutoResize();
         this.updateThemeSelector();
@@ -443,23 +444,41 @@ class UIManager {
         // Nastavit globální funkce pro kompatibilitu
         this.setupGlobalFunctions();
         
+        // Pokusit se načíst welcome screen s fallbackem
+        setTimeout(() => {
+            try {
+                this.showWelcomeScreen();
+            } catch (error) {
+                console.warn('⚠️ Welcome screen init warning:', error);
+            }
+        }, 100);
+        
         console.log('🎨 UI Manager ready');
     }
     
-    // Nastavit globální funkce
+    // Nastavit globální funkce - BEZPEČNÉ
     setupGlobalFunctions() {
-        window.setAppTheme = (theme) => this.setTheme(theme);
-        window.toggleMainMenu = () => this.toggleMainMenu();
-        window.closeMainMenu = () => this.closeMainMenu();
-        window.toggleVisibility = (fieldId) => this.toggleVisibility(fieldId);
-        window.toggleAppConnector = (appName) => this.toggleAppConnector(appName);
-        window.updateAppStatus = (appName, status) => this.updateAppStatus(appName, status);
-        window.showWelcomeScreen = () => this.showWelcomeScreen();
-        window.showSystemHelp = () => this.showSystemHelp();
-        window.showDataProtection = () => this.showDataProtection();
-        window.clickExampleQuery = (query) => this.clickExampleQuery(query);
-        window.addMessage = (role, content) => this.addMessage(role, content);
-        window.addDiagnosticMessage = (text, status) => this.addDiagnosticMessage(text, status);
+        // Bezpečné přiřazení s kontrolou existence
+        const safeAssign = (name, func) => {
+            try {
+                window[name] = func;
+            } catch (error) {
+                console.warn(`⚠️ Failed to assign global function ${name}:`, error);
+            }
+        };
+        
+        safeAssign('setAppTheme', (theme) => this.setTheme(theme));
+        safeAssign('toggleMainMenu', () => this.toggleMainMenu());
+        safeAssign('closeMainMenu', () => this.closeMainMenu());
+        safeAssign('toggleVisibility', (fieldId) => this.toggleVisibility(fieldId));
+        safeAssign('toggleAppConnector', (appName) => this.toggleAppConnector(appName));
+        safeAssign('updateAppStatus', (appName, status) => this.updateAppStatus(appName, status));
+        safeAssign('showWelcomeScreen', () => this.showWelcomeScreen());
+        safeAssign('showSystemHelp', () => this.showSystemHelp());
+        safeAssign('showDataProtection', () => this.showDataProtection());
+        safeAssign('clickExampleQuery', (query) => this.clickExampleQuery(query));
+        safeAssign('addMessage', (role, content) => this.addMessage(role, content));
+        safeAssign('addDiagnosticMessage', (text, status) => this.addDiagnosticMessage(text, status));
     }
     
     // Export konfigurace UI
